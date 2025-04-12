@@ -10,8 +10,9 @@ int errors_count = 0;
 
 delim                   [ \t\n]
 ws                      {delim}+
-digit					[0-9]
-number					{digit}+
+letter                  [a-z]
+digit                   [0-9]
+number                  {digit}+
 comment                 "/*".*"*/"
 other                   .
 
@@ -21,9 +22,9 @@ other                   .
 /*----------------------------- Rules -----------------------------*/
 %}
 {comment}               { column_number+=yyleng; }
-"+"						{ fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
+"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"-"						{ fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
+"-"                     { fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "\n"                    { line_number++; column_number=1; }
 {number}                { fprintf(yyout,"%d(%d): %s (NUMBER) \n",line_number,column_number,yytext); column_number+=yyleng; }

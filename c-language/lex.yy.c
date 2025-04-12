@@ -670,10 +670,10 @@ YY_DECL
 		}
 
 	{
-#line 19 "c-language.l"
+#line 20 "c-language.l"
 
 
-#line 22 "c-language.l"
+#line 23 "c-language.l"
 /*----------------------------- Rules -----------------------------*/
 
 #line 679 "lex.yy.c"
@@ -735,46 +735,46 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 24 "c-language.l"
+#line 25 "c-language.l"
 { column_number+=yyleng; }
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 25 "c-language.l"
+#line 26 "c-language.l"
 { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 27 "c-language.l"
+#line 28 "c-language.l"
 { fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 	YY_BREAK
 case 4:
 /* rule 4 can match eol */
 YY_RULE_SETUP
-#line 29 "c-language.l"
+#line 30 "c-language.l"
 { line_number++; column_number=1; }
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 30 "c-language.l"
+#line 31 "c-language.l"
 { fprintf(yyout,"%d(%d): %s (NUMBER) \n",line_number,column_number,yytext); column_number+=yyleng; }
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 31 "c-language.l"
+#line 32 "c-language.l"
 { column_number+=yyleng; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 32 "c-language.l"
+#line 33 "c-language.l"
 { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 35 "c-language.l"
+#line 36 "c-language.l"
 ECHO;
 	YY_BREAK
 #line 780 "lex.yy.c"
@@ -1782,7 +1782,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 35 "c-language.l"
+#line 36 "c-language.l"
 
 /*------------------------ User subrotines ------------------------*/
 int main(int argc, char *argv[]){
