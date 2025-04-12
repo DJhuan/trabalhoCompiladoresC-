@@ -12,7 +12,9 @@ delim                   [ \t\n]
 ws                      {delim}+
 letter                  [a-z]
 digit                   [0-9]
-number                  {digit}+
+float_error             {digit}+","{digit}*
+num_float               {digit}+"."{digit}*|E[+|-]{digit}+
+num_int                 {digit}+
 comment                 "/*".*"*/"
 other                   .
 
@@ -27,7 +29,9 @@ other                   .
 "-"                     { fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "\n"                    { line_number++; column_number=1; }
-{number}                { fprintf(yyout,"%d(%d): %s (NUMBER) \n",line_number,column_number,yytext); column_number+=yyleng; }
+{float_error}           { fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float?. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
+{num_int}               { fprintf(yyout,"%d(%d): %s (INT)\n",line_number,column_number,yytext); column_number+=yyleng; }
+{num_float}             { fprintf(yyout,"%d(%d): %s (FLOAT)\n",line_number,column_number,yytext); column_number+=yyleng; }
 {ws}                    { column_number+=yyleng; }
 {other}                 { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 
