@@ -22,24 +22,23 @@ other                   .
 /*----------------------------- Rules -----------------------------*/
 %}
 {comment}               { column_number+=yyleng; }
-
-"=="                    { fprintf(yyout,"%d(%d): %s (EQUALS)\n",line_number,column_number,yytext);
+"=="                    { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"!="                    { fprintf(yyout,"%d(%d): %s (NOT EQUALS)\n",line_number,column_number,yytext);
+"!="                    { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "=!"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", ++errors_count, line_number, column_number, yytext); }
-"<="                    { fprintf(yyout,"%d(%d): %s (LESSER OR EQUAL)\n",line_number,column_number,yytext);
+"<="                    { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-">="                    { fprintf(yyout,"%d(%d): %s (GREATER OR EQUAL)\n",line_number,column_number,yytext);
+">="                    { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "=>"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean >= ?\n", ++errors_count, line_number, column_number, yytext); }
-">"                     { fprintf(yyout,"%d(%d): %s (GREATER)\n",line_number,column_number,yytext);
+">"                     { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"<"                     { fprintf(yyout,"%d(%d): %s (LESSER)\n",line_number,column_number,yytext);
+"<"                     { fprintf(yyout,"%d(%d): %s (RELOP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
+"+"                     { fprintf(yyout,"%d(%d): %s (OPERATOR)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"-"                     { fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
+"-"                     { fprintf(yyout,"%d(%d): %s (OPERATOR)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 
 ";"                     { fprintf(yyout,"%d(%d): %s (SEMICOLON)\n",line_number,column_number,yytext);
