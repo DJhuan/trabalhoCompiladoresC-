@@ -40,13 +40,13 @@ other                   .
                           column_number+=yyleng; }
 
 /* Operadores aritméticos */
-"+"                     { fprintf(yyout,"%d(%d): %s (SOMA)\n",line_number,column_number,yytext);
+"+"                     { fprintf(yyout,"%d(%d): %s (SOMA, +)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"-"                     { fprintf(yyout,"%d(%d): %s (SOMA)\n",line_number,column_number,yytext);
+"-"                     { fprintf(yyout,"%d(%d): %s (SOMA, -)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"*"                     { fprintf(yyout,"%d(%d): %s (MULT)\n",line_number,column_number,yytext);
+"*"                     { fprintf(yyout,"%d(%d): %s (MULT, *)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"/"                     { fprintf(yyout,"%d(%d): %s (MULT)\n",line_number,column_number,yytext);
+"/"                     { fprintf(yyout,"%d(%d): %s (MULT, /)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 
 /* Pontuações */
