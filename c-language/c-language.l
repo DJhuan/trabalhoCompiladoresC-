@@ -14,6 +14,7 @@ letter                  [a-z]
 digit                   [0-9]
 error_id                {number}({letter}|{number})*
 number                  {digit}+
+type                    int|float|char
 id                      {letter}({letter}|{number})*
 comment                 "/*".*"*/"
 error_comment           \/.*\*\/|\/\*.*\/
@@ -37,15 +38,7 @@ other                   .
 "else"                  { fprintf(yyout,"%d(%d): %s (ELSE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "while"                 { fprintf(yyout,"%d(%d): %s (WHILE)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; } 
-"int"                   { fprintf(yyout,"%d(%d): %s (INT)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; }    
-"float"                 { fprintf(yyout,"%d(%d): %s (FLOAT)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; }  
-"char"                  { fprintf(yyout,"%d(%d): %s (CHAR)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; } 
-"boolean"               { fprintf(yyout,"%d(%d): %s (BOOLEAN)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; }    
+                          column_number+=yyleng; }      
 "struct"                { fprintf(yyout,"%d(%d): %s (STRUCT)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }         
 "void"                  { fprintf(yyout,"%d(%d): %s (VOID)\n",line_number,column_number,yytext);
@@ -55,6 +48,8 @@ other                   .
 "cin"                   { fprintf(yyout,"%d(%d): %s (INPUT)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }    
 "cout"                  { fprintf(yyout,"%d(%d): %s (OUTPUT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }  
+{type}                  { fprintf(yyout,"%d(%d): %s (TYPE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }    
 {id}                    { fprintf(yyout,"%d(%d): %s (ID)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }  
