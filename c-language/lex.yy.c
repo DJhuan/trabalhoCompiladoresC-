@@ -363,8 +363,8 @@ struct yy_trans_info
 static const flex_int16_t yy_accept[25] =
     {   0,
         0,    0,   11,    9,    8,    4,    2,    3,    9,    6,
-        9,    8,    0,    5,    7,    6,    0,    0,    0,    5,
-        7,    7,    1,    0
+        8,    0,    5,    0,    6,    0,    0,    5,    7,    1,
+        0,    0,    7,    0
     } ;
 
 static const YY_CHAR yy_ec[256] =
@@ -380,9 +380,9 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
 
+       11,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,   12,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -399,41 +399,41 @@ static const YY_CHAR yy_ec[256] =
         1,    1,    1,    1,    1
     } ;
 
-static const YY_CHAR yy_meta[13] =
+static const YY_CHAR yy_meta[12] =
     {   0,
-        1,    2,    3,    1,    4,    1,    4,    1,    1,    1,
-        1,    4
+        1,    2,    3,    1,    4,    1,    4,    1,    1,    4,
+        1
     } ;
 
 static const flex_int16_t yy_base[28] =
     {   0,
-        0,    0,   34,   35,    0,    0,   35,   35,   29,    7,
-        0,    0,   28,   21,   20,    0,   18,   18,   14,   11,
-       10,    9,   12,   35,   22,   10,   25
+        0,    0,   35,   36,    0,    0,   36,   36,   30,    6,
+        0,   29,   22,   21,    0,   25,   13,   11,   13,   16,
+        9,    8,    5,   36,   23,   26,    9
     } ;
 
 static const flex_int16_t yy_def[28] =
     {   0,
        24,    1,   24,   24,   25,   25,   24,   24,   24,   24,
-       26,   25,   27,   24,   24,   10,   24,   27,   27,   24,
-       24,   24,   27,    0,   24,   24,   24
+       25,   26,   24,   24,   10,   26,   26,   24,   24,   26,
+       27,   24,   24,    0,   24,   24,   24
     } ;
 
 static const flex_int16_t yy_nxt[48] =
     {   0,
         4,    5,    6,    4,    7,    4,    8,    4,    9,   10,
-       11,    4,   14,   17,   15,   19,   16,   19,   22,   21,
-       20,   19,   23,   12,   12,   18,   18,   22,   18,   21,
-       20,   19,   13,   24,    3,   24,   24,   24,   24,   24,
+        4,   13,   22,   14,   23,   15,   17,   23,   23,   17,
+       18,   20,   19,   21,   11,   11,   16,   16,   17,   16,
+       19,   18,   17,   12,   24,    3,   24,   24,   24,   24,
        24,   24,   24,   24,   24,   24,   24
     } ;
 
 static const flex_int16_t yy_chk[48] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
-        1,    1,   10,   26,   10,   23,   10,   19,   22,   21,
-       20,   18,   19,   25,   25,   27,   27,   17,   27,   15,
-       14,   13,    9,    3,   24,   24,   24,   24,   24,   24,
+        1,   10,   27,   10,   23,   10,   17,   22,   21,   20,
+       18,   17,   19,   19,   25,   25,   26,   26,   16,   26,
+       14,   13,   12,    9,    3,   24,   24,   24,   24,   24,
        24,   24,   24,   24,   24,   24,   24
     } ;
 
@@ -717,7 +717,7 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 35 );
+		while ( yy_base[yy_current_state] != 36 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -767,7 +767,7 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 33 "c-language.l"
-{ fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float?. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
+{ fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float? Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
