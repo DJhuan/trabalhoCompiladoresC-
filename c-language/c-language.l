@@ -12,10 +12,14 @@ delim                   [ \t]
 ws                      {delim}+
 letter                  [a-z]
 digit                   [0-9]
+error_id                {number}({letter}|{number})*
 num_int                 {digit}+
+type                    int|float|char
+id                      {letter}({letter}|{number})*
 float_error             {digit}+","{digit}*
 num_float               {digit}+\.{digit}+([Ee][+-]?{digit}+)?
 comment                 "/*".*"*/"
+error_comment           \/.*\*\/|\/\*.*\/
 other                   .
 
 
@@ -24,12 +28,41 @@ other                   .
 /*----------------------------- Rules -----------------------------*/
 %}
 {comment}               { column_number+=yyleng; }
+<<<<<<< HEAD
+{error_id}              { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", ++errors_count, line_number, column_number, yytext); }
+{error_comment}         { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", ++errors_count, line_number, column_number, yytext); }
+
+"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
+=======
 
 /* Operadores relacionais */
 "=="                    { fprintf(yyout,"%d(%d): %s (RELOP, EQ)\n",line_number,column_number,yytext);
+>>>>>>> main
                           column_number+=yyleng; }
 "!="                    { fprintf(yyout,"%d(%d): %s (RELOP, NE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
+<<<<<<< HEAD
+"if"                    { fprintf(yyout,"%d(%d): %s (IF)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }   
+"else"                  { fprintf(yyout,"%d(%d): %s (ELSE)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"while"                 { fprintf(yyout,"%d(%d): %s (WHILE)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }      
+"struct"                { fprintf(yyout,"%d(%d): %s (STRUCT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }         
+"void"                  { fprintf(yyout,"%d(%d): %s (VOID)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }   
+"return"                { fprintf(yyout,"%d(%d): %s (RETURN)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }  
+"cin"                   { fprintf(yyout,"%d(%d): %s (INPUT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }    
+"cout"                  { fprintf(yyout,"%d(%d): %s (OUTPUT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }  
+{type}                  { fprintf(yyout,"%d(%d): %s (TYPE)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }    
+{id}                    { fprintf(yyout,"%d(%d): %s (ID)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }  
+=======
 "=!"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", ++errors_count, line_number, column_number, yytext); }
 "<="                    { fprintf(yyout,"%d(%d): %s (RELOP, LE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
@@ -67,6 +100,7 @@ other                   .
 ")"                     { fprintf(yyout,"%d(%d): %s (CP)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 
+>>>>>>> main
 "\n"                    { line_number++; column_number=1; }
 
 {float_error}           { fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float? Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
