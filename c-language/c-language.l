@@ -10,14 +10,15 @@ int errors_count = 0;
 
 delim                   [ \t]
 ws                      {delim}+
-letter                  [a-z]
+letter                  [a-zA-Z]
 digit                   [0-9]
 error_id                {digit}({letter}|{digit})*
 num_int                 {digit}+
 type                    int|float|char
+character               \'.\'
 id                      {letter}({letter}|{digit})*
 float_error             {digit}+","{digit}*
-num_float               {digit}+\.{digit}+([Ee][+-]?{digit}+)?
+num_float               {digit}+(\.{digit}+)?([Ee][+-]?{digit}+)?
 comment                 "/*".*"*/"
 error_comment           \/.*\*\/|\/\*.*\/
 other                   .
@@ -53,7 +54,9 @@ other                   .
 {type}                  { fprintf(yyout,"%d(%d): %s (TYPE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }    
 {id}                    { fprintf(yyout,"%d(%d): %s (ID)\n",line_number,column_number,yytext);
-                          column_number+=yyleng; }  
+                          column_number+=yyleng; }
+{character}             { fprintf(yyout,"%d(%d): %s (CHARACTER)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
 "=!"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", ++errors_count, line_number, column_number, yytext); }
 "<="                    { fprintf(yyout,"%d(%d): %s (RELOP, LE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
@@ -73,6 +76,8 @@ other                   .
 "/"                     { fprintf(yyout,"%d(%d): %s (MULT, /)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 ";"                     { fprintf(yyout,"%d(%d): %s (SEMICOLON)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+","                     { fprintf(yyout,"%d(%d): %s (COLON)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
 "{"                     { fprintf(yyout,"%d(%d): %s (OCB)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
