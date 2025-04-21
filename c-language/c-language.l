@@ -8,7 +8,7 @@ int column_number = 1;
 int errors_count = 0;
 %}
 
-delim                   [ \t\n]
+delim                   [ \t]
 ws                      {delim}+
 letter                  [a-z]
 digit                   [0-9]
@@ -24,11 +24,51 @@ other                   .
 /*----------------------------- Rules -----------------------------*/
 %}
 {comment}               { column_number+=yyleng; }
-"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
+
+/* Operadores relacionais */
+"=="                    { fprintf(yyout,"%d(%d): %s (RELOP, EQ)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
-"-"                     { fprintf(yyout,"%d(%d): %s (MINUS)\n",line_number,column_number,yytext);
+"!="                    { fprintf(yyout,"%d(%d): %s (RELOP, NE)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
+"=!"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", ++errors_count, line_number, column_number, yytext); }
+"<="                    { fprintf(yyout,"%d(%d): %s (RELOP, LE)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+">="                    { fprintf(yyout,"%d(%d): %s (RELOP, GE)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"=>"                    { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean >= ?\n", ++errors_count, line_number, column_number, yytext); }
+">"                     { fprintf(yyout,"%d(%d): %s (RELOP, GT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"<"                     { fprintf(yyout,"%d(%d): %s (RELOP, LT)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+
+/* Operadores aritméticos */
+"+"                     { fprintf(yyout,"%d(%d): %s (SOMA, +)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"-"                     { fprintf(yyout,"%d(%d): %s (SOMA, -)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"*"                     { fprintf(yyout,"%d(%d): %s (MULT, *)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"/"                     { fprintf(yyout,"%d(%d): %s (MULT, /)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+
+/* Pontuações */
+";"                     { fprintf(yyout,"%d(%d): %s (SEMICOLON)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"{"                     { fprintf(yyout,"%d(%d): %s (OCB)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"}"                     { fprintf(yyout,"%d(%d): %s (CCB)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"["                     { fprintf(yyout,"%d(%d): %s (OB)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"]"                     { fprintf(yyout,"%d(%d): %s (CB)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+"("                     { fprintf(yyout,"%d(%d): %s (OP)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+")"                     { fprintf(yyout,"%d(%d): %s (CP)\n",line_number,column_number,yytext);
+                          column_number+=yyleng; }
+
 "\n"                    { line_number++; column_number=1; }
+
 {float_error}           { fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float? Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 {num_int}               { fprintf(yyout,"%d(%d): %s (INT)\n",line_number,column_number,yytext); column_number+=yyleng; }
 {num_float}             { fprintf(yyout,"%d(%d): %s (FLOAT)\n",line_number,column_number,yytext); column_number+=yyleng; }
