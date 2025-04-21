@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 if
 else
 while
@@ -19,3 +20,7 @@ ifi
 977ids
 /*sjsdnc*/
 /*sjsdnc/
+=======
+
+4,25
+>>>>>>> main
