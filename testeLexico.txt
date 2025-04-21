@@ -1,25 +1,11 @@
 <<<<<<< HEAD
-if
-else
-while
-void
-return 
-float
-int
-string
-char
-boolean  
-return
-struct
-cin
-cout 
-variavel
-voide 
-jdjdk422
-ifi
-977ids
-/*sjsdnc*/
-/*sjsdnc/
++ ++
+- --	
+ 	 	 	 
+== != =!
+=> >= =!
+/ ajsbdjasbdj */
+/* /
 =======
 
 4,25
