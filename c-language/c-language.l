@@ -31,7 +31,7 @@ other                   .
 {error_id}              { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", ++errors_count, line_number, column_number, yytext); }
 {error_comment}         { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", ++errors_count, line_number, column_number, yytext); }
 
-"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);
+"+"                     { fprintf(yyout,"%d(%d): %s (PLUS)\n",line_number,column_number,yytext);}
 
 "=="                    { fprintf(yyout,"%d(%d): %s (RELOP, EQ)\n",line_number,column_number,yytext);
                           column_number+=yyleng; }
