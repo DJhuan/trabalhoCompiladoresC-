@@ -96,7 +96,7 @@ other                   .
 {num_int}               { fprintf(yyout,"%d(%d): %s (INT)\n",line_number,column_number,yytext); column_number+=yyleng; }
 {num_float}             { fprintf(yyout,"%d(%d): %s (FLOAT)\n",line_number,column_number,yytext); column_number+=yyleng; }
 {error_id}              { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", ++errors_count, line_number, column_number, yytext); }
-{float_error}           { fprintf(yyout, "(%d) Lexical error in line %d and col %d Do you mean '.' for float? Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
+{float_error}           { fprintf(yyout, "(%d) Lexical error in line %d and col %d Did you mean '.' for float? Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 {ws}                    { column_number+=yyleng; }
 {other}                 { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
 
