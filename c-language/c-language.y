@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+extern FILE *yyin;
 
 int yylex(void);
 void yyerror(const char *s);
@@ -16,6 +17,7 @@ void yyerror(const char *s);
 %token SEMICOLON COLON
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
+%token CHARACTER
 %token STRUCT 
 %token VOID
 
@@ -160,6 +162,19 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s\n", s);
 }
 
-int main(void) {
-    return yyparse();
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        fprintf(stderr, "Uso: %s <arquivo_de_teste>\n", argv[0]);
+        return 1;
+    }
+    FILE *file = fopen(argv[1], "r");
+    if (!file) {
+        fprintf(stderr, "Erro ao abrir o arquivo de teste.\n");
+        return 1;
+    }
+    yyin = file;
+    yyparse();
+    fclose(file);
+    return 0;
 }
+

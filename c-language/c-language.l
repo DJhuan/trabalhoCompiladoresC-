@@ -3,6 +3,9 @@
 #include<stdio.h>
 #include<string.h>
 #include "parser.tab.h"
+extern int yylex(void);
+extern int yyparse(void);
+extern FILE *yyin, *yyout;
 
 int line_number = 1;
 int column_number = 1;
@@ -66,7 +69,6 @@ other                   .
 {num_float} { column_number += yyleng; return NUM_FLOAT; }
 {character} { column_number += yyleng; return CHARACTER; }
 
-/* ----------------------------- Regras de erro ----------------------------- */
 
 {error_comment} { 
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", 
@@ -87,18 +89,6 @@ other                   .
 
 /*------------------------ User subroutines ------------------------*/
 
-int main(int argc, char *argv[]) {
-    yyin = fopen(argv[1], "r");
-    if (!yyin) {
-        fprintf(stderr, "Erro ao abrir arquivo.\n");
-        return 1;
-    }
-    yyout = stdout;
-    yyparse(); 
-    fclose(yyin);
-    return 0;
-}
-
 int yywrap() {
-    return 0;
+    return 1;
 }

@@ -76,8 +76,9 @@ extern int yydebug;
     CB = 277,                      /* CB  */
     NUM_INT = 278,                 /* NUM_INT  */
     NUM_FLOAT = 279,               /* NUM_FLOAT  */
-    STRUCT = 280,                  /* STRUCT  */
-    VOID = 281                     /* VOID  */
+    CHARACTER = 280,               /* CHARACTER  */
+    STRUCT = 281,                  /* STRUCT  */
+    VOID = 282                     /* VOID  */
   };
   typedef enum yytokentype yytoken_kind_t;
 #endif
