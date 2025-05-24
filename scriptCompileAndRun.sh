@@ -1,66 +1,39 @@
 #!/bin/bash
-# Script criado por Ricardo Terra
-# Modificado por Jhuan Carlos
 
-# Verifica se os parâmetros foram passados
-if [ $# -ne 2 ]; then
-  echo "Uso: $0 <nome_compilacao> <arquivo_txt>"
+# Verifica se todos os parâmetros foram passados
+if [ $# -ne 3 ]; then
+  echo "Uso: $0 <arquivo_do_yacc.y> <arquivo_do_lex.l> <arquivo_de_teste.txt>"
   exit 1
 fi
 
-NOME_COMPILACAO="$1"
-ARQUIVO_TEXTO="$2"
+ARQ_YACC="$1"
+ARQ_LEX="$2"
+ARQ_TESTE="$3"
 
-# Verifica se o arquivo existe
-if [ ! -f "$ARQUIVO_TEXTO" ]; then
-  echo "Erro: Arquivo '$ARQUIVO_TEXTO' não encontrado."
+cd "c-language"
+
+echo "Compilando arquivo .y."
+bison -d -o parser.tab.c c-language.y
+
+if [ ! -f "parser.tab.c" ]; then
+  echo "Erro na compilação do arquivo '.y'!"
   exit 1
 fi
 
+echo "Compilando arquivo .l."
+flex -o scanner.yy.c c-language.l
 
-cd "$NOME_COMPILACAO"
-
-# Remove o executável anterior
-if [ ! -f "$NOME COMPILACAO" ]; then
-  echo "Apagando executável '$NOME_COMPILACAO'."
-  rm $NOME_COMPILACAO
-fi
-
-# Gera o analisador léxico com flex
-echo # Nove linha
-echo "#  Executando o Flex  #"
-echo flex "$NOME_COMPILACAO.l"
-echo "##### Output Flex #####"
-echo # Nova linha
-flex "$NOME_COMPILACAO.l"
-echo # Nova linha
-echo "#######################"
-
-if [ ! -f "lex.yy.c" ]; then
-  echo "Erro na geração do analisador léxico."
+if [ ! -f "scanner.yy.c" ]; then
+  echo "Erro na compilação do arquivo '.l'!"
   exit 1
 fi
 
-# Compila o código gerado
-echo # Nove linha
-echo "#  Executando o GCC  #"
-echo gcc lex.yy.c -o "$NOME_COMPILACAO"
-gcc lex.yy.c -o "$NOME_COMPILACAO"
+echo "Compilando analisador sintático."
+gcc -o analise-sintatica scanner.yy.c parser.tab.c -lfl
 
-if [ ! -f "$NOME_COMPILACAO" ]; then
-  echo "Erro na compilação do analisador léxico."
+if [ ! -f "analise-sintatica" ]; then
+  echo "Erro na compilação do analisador sintático!"
   exit 1
 fi
 
-# Executa o programa com o arquivo de entrada
-echo # Nova linha
-echo "############## Sucesso! ##############"
-echo ./"$NOME_COMPILACAO" ../"$ARQUIVO_TEXTO"
-./"$NOME_COMPILACAO" ../"$ARQUIVO_TEXTO"
-
-
-%flex ${1}
-%yacc -d ${2} -r 'all'
-%gcc y.tab.c lex.yy.c -o ${3} -lfl -ly
-%echo "Run "${3}
-%./${3} ${4}
+./analise-sintatica ../"$ARQ_TESTE"
