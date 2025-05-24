@@ -1,2 +1,5 @@
 /c-language/c-language
 /c-language/lex.yy.c
+/parser.tab.c
+/scanner.yy.c
+/parser.tab.h

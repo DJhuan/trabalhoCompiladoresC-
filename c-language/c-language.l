@@ -9,7 +9,6 @@ int column_number = 1;
 int errors_count = 0;
 %}
 
-
 delim                   [ \t]
 ws                      {delim}+
 letter                  [a-zA-Z]
@@ -19,7 +18,7 @@ num_int                 {digit}+
 character               \'.\'
 id                      {letter}({letter}|{digit})*
 num_float               {digit}+(\.{digit}+)?([Ee][+-]?{digit}+)?
-comment                 "#".|"/"(.|\n)"*/"
+comment                 "#".|"/"(.|\n)*"*/"
 error_comment           \/.*\*\/|\/\*.*\/
 other                   .
 
@@ -58,7 +57,6 @@ other                   .
 "["         { column_number += yyleng; return OB; }
 "]"         { column_number += yyleng; return CB; }
 
-
 {ws}        { column_number += yyleng; }
 "\n"        { line_number++; column_number = 1; }
 {comment}   { column_number += yyleng; }
@@ -68,21 +66,26 @@ other                   .
 {num_float} { column_number += yyleng; return NUM_FLOAT; }
 {character} { column_number += yyleng; return CHARACTER; }
 
+/* ----------------------------- Regras de erro ----------------------------- */
 
+{error_comment} { 
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", 
+        ++errors_count, line_number, column_number, yytext); 
+}
+
+{error_id} { 
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", 
+        ++errors_count, line_number, column_number, yytext); 
+}
+
+{other} { 
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", 
+        ++errors_count, line_number, column_number, yytext); 
+}
 
 %%
-%{
-/*----------------------------- Rules -----------------------------*/
-%}
-{error_comment}         { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", ++errors_count, line_number, column_number, yytext); }
 
-{error_id}              { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", ++errors_count, line_number, column_number, yytext); }
-
-{other}                 { fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", ++errors_count, line_number, column_number, yytext); }
-
-
-%%
-/*------------------------ User subrotines ------------------------*/
+/*------------------------ User subroutines ------------------------*/
 
 int main(int argc, char *argv[]) {
     yyin = fopen(argv[1], "r");
@@ -91,7 +94,11 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     yyout = stdout;
-    yyparse();  // chama o parser
+    yyparse(); 
     fclose(yyin);
+    return 0;
+}
+
+int yywrap() {
     return 0;
 }

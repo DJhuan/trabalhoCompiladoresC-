@@ -6,7 +6,6 @@ int yylex(void);
 void yyerror(const char *s);
 %}
 
-/* Tokens esperados do analisador léxico */
 %token ID
 %token INT FLOAT CHAR
 %token IF ELSE WHILE RETURN
@@ -17,11 +16,13 @@ void yyerror(const char *s);
 %token SEMICOLON COLON
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
-%token CHARACTER
 %token STRUCT 
 %token VOID
 
+%nonassoc IF
+%nonassoc ELSE
 %%
+
 
 programa    :   decl_lista
                 ;
@@ -72,11 +73,11 @@ composto_decl   :   OCB local_decl comando_lista CCB
                     ;
 
 local_decl  :   var_decl
-                |
+                | /* vazio */
                 ;
 
 comando_lista   :   comando
-                    |
+                    | /* vazio */
                     ;
 
 comando     :   expressao_decl
@@ -90,8 +91,8 @@ expressao_decl  :   expressao SEMICOLON
                     |SEMICOLON
                     ;
 
-selecao_decl    :   IF OP expressao CP comando
-                    |IF OP expressao CP comando ELSE comando 
+selecao_decl    :   IF OP expressao CP %prec IF 
+                    | IF OP expressao CP comando ELSE comando 
                     ;
 
 iteracao_decl   :   WHILE OP expressao CP comando
@@ -144,17 +145,13 @@ ativacao    :   ID OP args CP
                 ;
 
 args    :   arg_list
-            |
+            | /* vazio */
             ;
 
 arg_list   :    expressao
-                |expressao arg_list_aux
+                |expressao COLON arg_list
                 ;
 
-
-arg_list_aux    :   COLON expressao
-                    |
-                    ;
 
 
 %%
