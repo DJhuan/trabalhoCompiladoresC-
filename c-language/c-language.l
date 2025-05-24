@@ -3,14 +3,13 @@
 #include<stdio.h>
 #include<string.h>
 #include "parser.tab.h"
-extern int yylex(void);
-extern int yyparse(void);
-extern FILE *yyin, *yyout;
 
 int line_number = 1;
 int column_number = 1;
 int errors_count = 0;
 %}
+
+%option noyywrap
 
 delim                   [ \t]
 ws                      {delim}+
@@ -88,7 +87,3 @@ other                   .
 %%
 
 /*------------------------ User subroutines ------------------------*/
-
-int yywrap() {
-    return 1;
-}

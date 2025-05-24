@@ -1,1 +1,27 @@
-int a = 1;
+/ Exemplo de teste sintático para a gramática fornecida
+
+int x;
+float y[10];
+char letra;
+
+struct Pessoa {
+    int idade;
+    char nome[50];
+};
+
+int soma(int a, int b) {
+    int resultado;
+    resultado = a + b;
+    return resultado;
+}
+
+void main(void) {
+    int z;
+    z = soma(2, 3);
+    if (z > 0)
+        z = z * 2;
+    else
+        z = 0;
+    while (z > 0)
+        z = z - 1;
+}

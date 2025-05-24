@@ -1,9 +1,12 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-extern FILE *yyin;
 
-int yylex(void);
+// Informações usadas pelo Bison que vem do Flex:
+extern int yylex();
+extern int yyparse();
+extern FILE *yyin;
+ 
 void yyerror(const char *s);
 %}
 
@@ -162,19 +165,24 @@ void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s\n", s);
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Uso: %s <arquivo_de_teste>\n", argv[0]);
-        return 1;
+int main(int argc, char **argv) {
+    if (argc < 2){
+        printf("Você deve prover um arquivo de entrada para o compilador.");
+        return -1;
     }
-    FILE *file = fopen(argv[1], "r");
-    if (!file) {
-        fprintf(stderr, "Erro ao abrir o arquivo de teste.\n");
-        return 1;
+    FILE *arq_compilado = fopen(argv[1], "r");
+    if (!arq_compilado) {
+        printf("O arquivo fornecido para compilação não é válido.");
+        return -2;
     }
-    yyin = file;
+
+    // Define que a entrada do flex é o arquivo aberto;
+    yyin = arq_compilado;
     yyparse();
-    fclose(file);
+
+    printf("Compilação bem sucedida!\n");
+
+    fclose(arq_compilado);
     return 0;
 }
 
