@@ -17,7 +17,7 @@ void yyerror(const char *s);
 %token MULT
 %token EQ
 %token RELOP
-%token SEMICOLON COLON
+%token SEMICOLON COMMA
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
 %token CHARACTER
@@ -32,7 +32,7 @@ void yyerror(const char *s);
 programa    :   decl_lista
                 ;
 
-decl_lista   :  decl decl_lista 
+decl_lista   :  decl decl_lista
                 |decl
                 ;
 
@@ -44,7 +44,8 @@ var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
                 ;
 
-dimen_matriz    :   OB NUM_INT CB | OB NUM_INT CB dimen_matriz
+dimen_matriz    :   OB NUM_INT CB
+                    | OB NUM_INT CB dimen_matriz
                     ;
 
 tipo_especificador  :   INT
@@ -67,7 +68,7 @@ params  :   params_lista
             ;
 
 params_lista    :   param
-                    |param COLON params_lista
+                    |param COMMA params_lista
                     ;
 
 param   :   tipo_especificador ID 
@@ -77,11 +78,11 @@ param   :   tipo_especificador ID
 composto_decl   :   OCB local_decl comando_lista CCB 
                     ;
 
-local_decl  :   var_decl
+local_decl  :   var_decl local_decl
                 | /* vazio */
                 ;
 
-comando_lista   :   comando
+comando_lista   :   comando comando_lista
                     | /* vazio */
                     ;
 
@@ -154,7 +155,7 @@ args    :   arg_list
             ;
 
 arg_list   :    expressao
-                |expressao COLON arg_list
+                |expressao COMMA arg_list
                 ;
 
 
@@ -163,6 +164,7 @@ arg_list   :    expressao
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s\n", s);
+    exit(-3);
 }
 
 int main(int argc, char **argv) {
@@ -180,7 +182,7 @@ int main(int argc, char **argv) {
     yyin = arq_compilado;
     yyparse();
 
-    printf("Compilação bem sucedida!\n");
+    printf("!!! Análise sintática bem sucedida !!!\n");
 
     fclose(arq_compilado);
     return 0;

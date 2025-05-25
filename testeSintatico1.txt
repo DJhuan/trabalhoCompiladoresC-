@@ -1,27 +1,33 @@
-/ Exemplo de teste sintático para a gramática fornecida
 
 int x;
-float y[10];
-char letra;
 
-struct Pessoa {
+
+float valores[10];
+
+
+char tabela[5][5];
+
+
+struct ponto {
+    float x;
+    float y;
+} y;
+
+
+void iniciar(void) {
+    int a;
+    a = 10;
+}
+
+
+int somar(int a, int b) {
+    return a + b;
+}
+
+
+void verificar(void) {
     int idade;
-    char nome[50];
-};
-
-int soma(int a, int b) {
-    int resultado;
-    resultado = a + b;
-    return resultado;
+    idade = 18;
+    if (idade >= 18) return;
 }
 
-void main(void) {
-    int z;
-    z = soma(2, 3);
-    if (z > 0)
-        z = z * 2;
-    else
-        z = 0;
-    while (z > 0)
-        z = z - 1;
-}

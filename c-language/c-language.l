@@ -51,7 +51,7 @@ other                   .
 ">="        { column_number += yyleng; return RELOP; }
 
 ";"         { column_number += yyleng; return SEMICOLON; }
-","         { column_number += yyleng; return COLON; }
+","         { column_number += yyleng; return COMMA; }
 "{"         { column_number += yyleng; return OCB; }
 "}"         { column_number += yyleng; return CCB; }
 "("         { column_number += yyleng; return OP; }
