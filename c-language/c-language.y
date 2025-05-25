@@ -82,27 +82,37 @@ param   :   tipo_especificador ID
 composto_decl   :   OCB local_decl comando_lista CCB 
                     ;
 
-local_decl  :   var_decl 
+local_decl  :   var_decl local_decl
                 | /* vazio */
                 ;
 
-comando_lista   :   comando
+comando_lista   :   comando comando_lista
                     | /* vazio */
                     ;
 
-comando     :   expressao_decl
-                |composto_decl
-                |selecao_decl
-                |iteracao_decl
-                |retorno_decl
-                ;
+comando :   comando_casado
+            |comando_singular
+            ;
+
+/* Neste caso, TODO IF está associado com um ELSE; */
+comando_casado  :   expressao_decl
+                    |composto_decl
+                    |iteracao_decl
+                    |retorno_decl
+                    |IF OP expressao CP comando_casado ELSE comando_casado
+                    ;
+
+/*
+Neste caso, o IF sem ELSE (singular) só pode entrar no final da regra,
+fazendo com que todo ELSE esteja associado ao IF que o orgiginou, sem
+espaço para ambiguidade;
+*/
+comando_singular    :   IF OP expressao CP comando
+                        |IF OP expressao CP comando_casado ELSE comando_singular
+                        ;
 
 expressao_decl  :   expressao SEMICOLON
                     |SEMICOLON
-                    ;
-
-selecao_decl    :   IF OP expressao CP %prec IF 
-                    | IF OP expressao CP comando ELSE comando 
                     ;
 
 iteracao_decl   :   WHILE OP expressao CP comando
@@ -133,7 +143,7 @@ expressao_soma  :   termo
                     ;
 
 expressao_somatorio :   SOMA termo 
-                        |SOMA termo expressao_somatorio
+                        | SOMA termo expressao_somatorio
                         ;
 
 termo   :   fator 
