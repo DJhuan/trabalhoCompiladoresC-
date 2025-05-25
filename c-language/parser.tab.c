@@ -72,11 +72,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 extern FILE *yyin;
+extern int line_number;
+extern int column_number;
+
 
 int yylex(void);
 void yyerror(const char *s);
 
-#line 80 "parser.tab.c"
+#line 83 "parser.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -552,13 +555,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    29,    29,    32,    33,    36,    37,    40,    41,    44,
-      44,    47,    48,    49,    50,    51,    54,    55,    58,    62,
-      63,    66,    67,    70,    71,    74,    77,    78,    81,    82,
-      85,    86,    87,    88,    89,    92,    93,    96,    97,   100,
-     103,   104,   107,   108,   111,   112,   115,   116,   119,   120,
-     123,   124,   127,   128,   131,   132,   135,   136,   139,   140,
-     141,   142,   143,   146,   149,   150,   153,   154
+       0,    32,    32,    35,    36,    39,    40,    43,    44,    47,
+      47,    50,    51,    52,    53,    54,    57,    58,    61,    65,
+      66,    69,    70,    73,    74,    77,    80,    81,    84,    85,
+      88,    89,    90,    91,    92,    95,    96,    99,   100,   103,
+     106,   107,   110,   111,   114,   115,   118,   119,   122,   123,
+     126,   127,   130,   131,   134,   135,   138,   139,   142,   143,
+     144,   145,   146,   149,   152,   153,   156,   157
 };
 #endif
 
@@ -1192,7 +1195,7 @@ yyreduce:
   switch (yyn)
     {
 
-#line 1196 "parser.tab.c"
+#line 1199 "parser.tab.c"
 
       default: break;
     }
@@ -1385,12 +1388,13 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 159 "c-language.y"
+#line 162 "c-language.y"
 
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro de sintaxe: %s\n", s);
+    fprintf(stderr, "Erro de sintaxe: %s na linha %d, coluna %d\n", s, line_number, column_number);
 }
+
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {

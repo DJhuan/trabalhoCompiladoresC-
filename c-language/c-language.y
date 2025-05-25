@@ -2,6 +2,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 extern FILE *yyin;
+extern int line_number;
+extern int column_number;
+
 
 int yylex(void);
 void yyerror(const char *s);
@@ -125,7 +128,7 @@ expressao_soma  :   termo
                     ;
 
 expressao_somatorio :   SOMA termo 
-                        | SOMA termo expressao_somatorio
+                        |SOMA termo expressao_somatorio
                         ;
 
 termo   :   fator 
@@ -159,8 +162,9 @@ arg_list   :    expressao
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro de sintaxe: %s\n", s);
+    fprintf(stderr, "Erro de sintaxe: %s na linha %d, coluna %d\n", s, line_number, column_number);
 }
+
 
 int main(int argc, char *argv[]) {
     if (argc < 2) {
