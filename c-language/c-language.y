@@ -82,11 +82,11 @@ param   :   tipo_especificador ID
 composto_decl   :   OCB local_decl comando_lista CCB 
                     ;
 
-local_decl  :   var_decl local_decl
+local_decl  :   var_decl 
                 | /* vazio */
                 ;
 
-comando_lista   :   comando comando_lista
+comando_lista   :   comando
                     | /* vazio */
                     ;
 

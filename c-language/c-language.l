@@ -20,7 +20,7 @@ num_int                 {digit}+
 character               \'.\'
 id                      {letter}({letter}|{digit})*
 num_float               {digit}+(\.{digit}+)?([Ee][+-]?{digit}+)?
-comment                 "#".|"/"(.|\n)*"*/"
+comment                 \/\\*([^*]|\*+[^*/])*\*+\/
 error_comment           \/.*\*\/|\/\*.*\/
 other                   .
 
@@ -76,6 +76,19 @@ other                   .
 
 {error_id} { 
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", 
+        ++errors_count, line_number, column_number, yytext); 
+}
+
+"=!" {
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", 
+        ++errors_count, line_number, column_number, yytext);
+}
+"=>" {
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean >= ?\n",
+        ++errors_count, line_number, column_number, yytext); 
+}
+"=<" {
+    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean <= ?\n",
         ++errors_count, line_number, column_number, yytext); 
 }
 

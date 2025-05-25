@@ -1,5 +1,9 @@
-
+/* isso é um comentário  de uma linha */
+int main;
 int x;
+
+/ comentário errado */
+/* comentário errado /
 
 
 float valores[10];
@@ -7,6 +11,8 @@ float valores[10];
 
 char tabela[5][5];
 
+/* isso é um comentário de 
+múltiplas linhas */
 
 struct ponto {
     float x;
@@ -19,15 +25,11 @@ void iniciar(void) {
     a = 10;
 }
 
-
 int somar(int a, int b) {
     return a + b;
 }
 
-
 void verificar(void) {
     int idade;
     idade = 18;
-    if (idade >= 18) return;
 } 
-
