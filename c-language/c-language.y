@@ -175,8 +175,6 @@ int main(int argc, char **argv) {
     if (argc < 2){
         printf("Você deve prover um arquivo de entrada para o compilador.");
         return -1;
-        fprintf(stderr, "Erro de sintaxe: %s\n", s);
-    exit(-3);
     }
     FILE *arq_compilado = fopen(argv[1], "r");
     if (!arq_compilado) {
