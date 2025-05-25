@@ -74,8 +74,6 @@
 extern FILE *yyin;
 extern int line_number;
 extern int column_number;
-int syntax_error_occurred = 0; 
-extern int errors_count;
 
 
 // Informações usadas pelo Bison que vem do Flex:
@@ -85,7 +83,7 @@ extern FILE *yyin;
  
 void yyerror(const char *s);
 
-#line 89 "parser.tab.c"
+#line 87 "c-language.tab.c"
 
 # ifndef YY_CAST
 #  ifdef __cplusplus
@@ -108,7 +106,7 @@ void yyerror(const char *s);
 #  endif
 # endif
 
-#include "parser.tab.h"
+#include "c-language.tab.h"
 /* Symbol kind.  */
 enum yysymbol_kind_t
 {
@@ -562,13 +560,13 @@ static const yytype_int8 yytranslate[] =
 /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    41,    41,    44,    45,    48,    49,    52,    53,    56,
-      57,    60,    61,    62,    63,    64,    67,    68,    71,    75,
-      76,    79,    80,    83,    84,    87,    90,    91,    94,    95,
-      98,    99,   103,   104,   105,   106,   107,   115,   116,   119,
-     120,   123,   126,   127,   130,   131,   134,   135,   138,   139,
-     142,   143,   146,   147,   150,   151,   154,   155,   158,   159,
-     162,   163,   164,   165,   166,   169,   172,   173,   176,   177
+       0,    39,    39,    42,    43,    46,    47,    50,    51,    54,
+      55,    58,    59,    60,    61,    62,    65,    66,    69,    73,
+      74,    77,    78,    81,    82,    85,    88,    89,    92,    93,
+      96,    97,   101,   102,   103,   104,   105,   113,   114,   117,
+     118,   121,   124,   125,   128,   129,   132,   133,   136,   137,
+     140,   141,   144,   145,   148,   149,   152,   153,   156,   157,
+     160,   161,   162,   163,   164,   167,   170,   171,   174,   175
 };
 #endif
 
@@ -1207,7 +1205,7 @@ yyreduce:
   switch (yyn)
     {
 
-#line 1211 "parser.tab.c"
+#line 1209 "c-language.tab.c"
 
       default: break;
     }
@@ -1400,12 +1398,11 @@ yyreturnlab:
   return yyresult;
 }
 
-#line 181 "c-language.y"
+#line 179 "c-language.y"
 
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s na linha %d, coluna %d\n", s, line_number, column_number);
-    syntax_error_occurred = 1; // Seta a flag quando um erro sintático ocorre
 }
 
 
@@ -1420,15 +1417,11 @@ int main(int argc, char **argv) {
         return -2;
     }
 
+    // Define que a entrada do flex é o arquivo aberto;
     yyin = arq_compilado;
-    yyparse(); // Esta chamada tentará analisar o arquivo
+    yyparse();
 
-    // Verifica se houve erros léxicos OU sintáticos
-    if (errors_count > 0 || syntax_error_occurred) {
-        printf("!!! Análise do arquivo concluída com ERROS !!!\n");
-    } else {
-        printf("!!! Análise sintática bem sucedida no arquivo !!!\n");
-    }
+    printf("!!! Análise sintática bem sucedida !!!\n");
 
     fclose(arq_compilado);
     return 0;

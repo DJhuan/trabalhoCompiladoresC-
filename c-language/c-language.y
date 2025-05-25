@@ -4,6 +4,8 @@
 extern FILE *yyin;
 extern int line_number;
 extern int column_number;
+int syntax_error_occurred = 0; 
+extern int errors_count;
 
 
 // Informações usadas pelo Bison que vem do Flex:
@@ -28,8 +30,11 @@ void yyerror(const char *s);
 %token STRUCT 
 %token VOID
 
-%nonassoc IF
-%nonassoc ELSE
+
+%left SOMA 
+%left MULT      
+%right EQ       
+%left RELOP 
 %%
 
 
@@ -173,11 +178,11 @@ arg_list   :    expressao
                 ;
 
 
-
 %%
 
 void yyerror(const char *s) {
     fprintf(stderr, "Erro de sintaxe: %s na linha %d, coluna %d\n", s, line_number, column_number);
+    syntax_error_occurred = 1; // Seta a flag quando um erro sintático ocorre
 }
 
 
@@ -192,11 +197,15 @@ int main(int argc, char **argv) {
         return -2;
     }
 
-    // Define que a entrada do flex é o arquivo aberto;
     yyin = arq_compilado;
-    yyparse();
+    yyparse(); // Esta chamada tentará analisar o arquivo
 
-    printf("!!! Análise sintática bem sucedida !!!\n");
+    // Verifica se houve erros léxicos OU sintáticos
+    if (errors_count > 0 || syntax_error_occurred) {
+        printf("!!! Análise do arquivo concluída com ERROS !!!\n");
+    } else {
+        printf("!!! Análise sintática bem sucedida no arquivo !!!\n");
+    }
 
     fclose(arq_compilado);
     return 0;

@@ -7,8 +7,7 @@ int x;
 
 float valores[10];
 
-
-char tabela[5][5];
+char tabela [5][5];
 
 /* isso é um comentário de 
 múltiplas linhas */
