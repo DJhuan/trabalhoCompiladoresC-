@@ -1,10 +1,9 @@
 /* isso é um comentário  de uma linha */
-int main;
+
 int x;
 
 / comentário errado */
 /* comentário errado /
-
 
 float valores[10];
 
