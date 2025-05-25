@@ -1,5 +1,7 @@
 /c-language/c-language
 /c-language/lex.yy.c
-/parser.tab.c
-/scanner.yy.c
-/parser.tab.h
+/c-language/parser.tab.c
+/c-language/scanner.yy.c
+/c-language/parser.tab.h
+/c-language/analise-sintatica
+/sandbox

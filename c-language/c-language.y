@@ -6,7 +6,11 @@ extern int line_number;
 extern int column_number;
 
 
-int yylex(void);
+// Informações usadas pelo Bison que vem do Flex:
+extern int yylex();
+extern int yyparse();
+extern FILE *yyin;
+ 
 void yyerror(const char *s);
 %}
 
@@ -17,7 +21,7 @@ void yyerror(const char *s);
 %token MULT
 %token EQ
 %token RELOP
-%token SEMICOLON COLON
+%token SEMICOLON COMMA
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
 %token CHARACTER
@@ -32,7 +36,7 @@ void yyerror(const char *s);
 programa    :   decl_lista
                 ;
 
-decl_lista   :  decl decl_lista 
+decl_lista   :  decl decl_lista
                 |decl
                 ;
 
@@ -44,7 +48,8 @@ var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
                 ;
 
-dimen_matriz    :   OB NUM_INT CB | OB NUM_INT CB dimen_matriz
+dimen_matriz    :   OB NUM_INT CB
+                    | OB NUM_INT CB dimen_matriz
                     ;
 
 tipo_especificador  :   INT
@@ -67,7 +72,7 @@ params  :   params_lista
             ;
 
 params_lista    :   param
-                    |param COLON params_lista
+                    |param COMMA params_lista
                     ;
 
 param   :   tipo_especificador ID 
@@ -77,11 +82,11 @@ param   :   tipo_especificador ID
 composto_decl   :   OCB local_decl comando_lista CCB 
                     ;
 
-local_decl  :   var_decl
+local_decl  :   var_decl local_decl
                 | /* vazio */
                 ;
 
-comando_lista   :   comando
+comando_lista   :   comando comando_lista
                     | /* vazio */
                     ;
 
@@ -154,7 +159,7 @@ args    :   arg_list
             ;
 
 arg_list   :    expressao
-                |expressao COLON arg_list
+                |expressao COMMA arg_list
                 ;
 
 
@@ -166,19 +171,26 @@ void yyerror(const char *s) {
 }
 
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        fprintf(stderr, "Uso: %s <arquivo_de_teste>\n", argv[0]);
-        return 1;
+int main(int argc, char **argv) {
+    if (argc < 2){
+        printf("Você deve prover um arquivo de entrada para o compilador.");
+        return -1;
+        fprintf(stderr, "Erro de sintaxe: %s\n", s);
+    exit(-3);
     }
-    FILE *file = fopen(argv[1], "r");
-    if (!file) {
-        fprintf(stderr, "Erro ao abrir o arquivo de teste.\n");
-        return 1;
+    FILE *arq_compilado = fopen(argv[1], "r");
+    if (!arq_compilado) {
+        printf("O arquivo fornecido para compilação não é válido.");
+        return -2;
     }
-    yyin = file;
+
+    // Define que a entrada do flex é o arquivo aberto;
+    yyin = arq_compilado;
     yyparse();
-    fclose(file);
+
+    printf("!!! Análise sintática bem sucedida !!!\n");
+
+    fclose(arq_compilado);
     return 0;
 }
 

@@ -29,11 +29,14 @@ if [ ! -f "scanner.yy.c" ]; then
 fi
 
 echo "Compilando analisador sintático."
-gcc -o analise-sintatica scanner.yy.c parser.tab.c -lfl
+gcc scanner.yy.c parser.tab.c -o analise-sintatica -lfl
 
 if [ ! -f "analise-sintatica" ]; then
   echo "Erro na compilação do analisador sintático!"
   exit 1
 fi
 
+echo "Iniciando analisador sintático. Compilando o arquivo: $ARQ_TESTE"
 ./analise-sintatica ../"$ARQ_TESTE"
+
+echo "--== FIM DA EXECUÇÃO ==--"

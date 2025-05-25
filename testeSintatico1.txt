@@ -1,3 +1,33 @@
-int o;
 
-int oolha
+int x;
+
+
+float valores[10];
+
+
+char tabela[5][5];
+
+
+struct ponto {
+    float x;
+    float y;
+} y;
+
+
+void iniciar(void) {
+    int a;
+    a = 10;
+}
+
+
+int somar(int a, int b) {
+    return a + b;
+}
+
+
+void verificar(void) {
+    int idade;
+    idade = 18;
+    if (idade >= 18) return;
+}
+
