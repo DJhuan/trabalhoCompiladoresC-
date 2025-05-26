@@ -107,11 +107,7 @@ comando_casado  :   expressao_decl
                     |IF OP expressao CP comando_casado ELSE comando_casado
                     ;
 
-/*
-Neste caso, o IF sem ELSE (singular) só pode entrar no final da regra,
-fazendo com que todo ELSE esteja associado ao IF que o orgiginou, sem
-espaço para ambiguidade;
-*/
+/* Neste caso, pode haver um IF sem ELSE */
 comando_singular    :   IF OP expressao CP comando
                         |IF OP expressao CP comando_casado ELSE comando_singular
                         ;
@@ -120,7 +116,7 @@ expressao_decl  :   expressao SEMICOLON
                     |SEMICOLON
                     ;
 
-iteracao_decl   :   WHILE OP expressao CP comando
+iteracao_decl   :   WHILE OP expressao CP comando_casado
                     ;
 
 retorno_decl    :   RETURN SEMICOLON 
