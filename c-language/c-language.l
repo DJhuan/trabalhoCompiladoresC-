@@ -21,7 +21,6 @@ character               \'.\'
 id                      {letter}({letter}|{digit})*
 num_float               {digit}+(\.{digit}+)?([Ee][+-]?{digit}+)?
 comment                 \/\\*([^*]|\*+[^*/])*\*+\/
-error_comment           \/.*\*\/|\/\*.*\/
 other                   .
 
 %%
@@ -68,11 +67,6 @@ other                   .
 {num_float} { column_number += yyleng; return NUM_FLOAT; }
 {character} { column_number += yyleng; return CHARACTER; }
 
-
-{error_comment} { 
-    fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Your comment is missing a delimiter \n", 
-        ++errors_count, line_number, column_number, yytext); 
-}
 
 {error_id} { 
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", 

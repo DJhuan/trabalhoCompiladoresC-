@@ -1,9 +1,7 @@
 /* isso é um comentário  de uma linha */
 
 int x;
-
-/ comentário errado */
-/* comentário errado /
+char a;
 
 float valores[10];
 
@@ -35,6 +33,7 @@ void verificar(void) {
 } 
 
 void verificar2(void) {
+    char a;
     int idade;
     idade = 16;
     if (idade >= 18)
@@ -61,6 +60,7 @@ void testeExpressoes(void) {
 
 
 int soma(int a, int b) {
+    char d;
     return a + b;
 }
 

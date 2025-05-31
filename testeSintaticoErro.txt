@@ -1,0 +1,26 @@
+/* id errado */
+int 123idErrado;
+
+/* símbolo relacional errado */
+void verificar(void) {
+    int idade;
+    idade = 18;
+    if (idade =< 18)
+        return;
+} 
+
+/* declaração depois de atribuição de valor */
+void declaracoes(void) {
+    int i;
+    i = 0;
+    char a;
+}
+
+/* sem parâmetro */
+void exemplo() {
+    int num;
+}
+
+/* declaração errado de matriz */
+char tabela [5][int];
+
