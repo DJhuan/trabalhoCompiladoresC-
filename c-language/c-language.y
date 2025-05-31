@@ -56,6 +56,7 @@ var_decl    :   tipo_especificador ID SEMICOLON
 
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
+                    |error SEMICOLON { yyerror("Unrecognized array dimension.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                     ;
 
 tipo_especificador  :   INT
@@ -71,7 +72,6 @@ atributos_decl  :   var_decl
 
 func_decl   :   tipo_especificador ID OP params CP composto_decl
                 ;
-
 
 params  :   params_lista
             |VOID
@@ -173,8 +173,6 @@ args    :   arg_list
 arg_list   :    expressao
                 |expressao COMMA arg_list
                 ;
-
-
 %%
 
 void yyerror(const char *s) {
