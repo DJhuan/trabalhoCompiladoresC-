@@ -51,6 +51,7 @@ decl    :   var_decl
 
 var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
+                |error SEMICOLON { yyerror("Missing identifier.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                 ;
 
 dimen_matriz    :   OB NUM_INT CB
@@ -177,7 +178,9 @@ arg_list   :    expressao
 %%
 
 void yyerror(const char *s) {
-    fprintf(stderr, "Erro de sintaxe: %s na linha %d, coluna %d\n", s, line_number, column_number);
+    fprintf(stderr, "Syntax error ocurred at (line,column):(%d, %d):\n"
+                    "Message: %s\n\n", 
+                    line_number, column_number, s);
     syntax_error_occurred = 1; // Seta a flag quando um erro sintático ocorre
 }
 
