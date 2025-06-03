@@ -1,19 +1,18 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
-extern FILE *yyin;
-extern int line_number;
-extern int column_number;
-int syntax_error_occurred = 0; 
-extern int errors_count;
-
 
 // Informações usadas pelo Bison que vem do Flex:
-extern int yylex();
-extern int yyparse();
-extern FILE *yyin;
- 
-void yyerror(const char *s);
+extern int line_number; // Número da linha do erro léxico;
+extern int column_number; // Número de coluna do erro léxico;
+extern int errors_count; // Contador de erros léxicos;
+extern int yylex(); // Retorna os tokens para o parser;
+extern int yyparse(); // Função principal para iniciar a análise léxica;
+extern FILE *yyin; // Indica que a entrada do analisador léxico é um arquivo;
+
+// Informações usadas na análise sintática:
+int syntax_error_occurred = 0; // Contador de erro sintático;
+void yyerror(const char *s); // Definição da função de erro;
 %}
 
 %token ID
@@ -31,10 +30,10 @@ void yyerror(const char *s);
 %token VOID
 
 
-%left SOMA 
-%left MULT      
-%right EQ       
-%left RELOP 
+%left SOMA
+%left MULT
+%right EQ
+%left RELOP
 %%
 
 
@@ -163,7 +162,7 @@ fator   :   OP expressao CP
             |NUM_INT
             ;
 
-ativacao    :   ID OP args CP       
+ativacao    :   ID OP args CP
                 ;
 
 args    :   arg_list
@@ -176,6 +175,7 @@ arg_list   :    expressao
 %%
 
 void yyerror(const char *s) {
+    // Define como um erro deve ser impresso ma saída de erro;
     fprintf(stderr, "Syntax error ocurred at (line,column):(%d, %d):\n"
                     "Message: %s\n\n", 
                     line_number, column_number, s);
@@ -185,26 +185,26 @@ void yyerror(const char *s) {
 
 int main(int argc, char **argv) {
     if (argc < 2){
-        printf("Você deve prover um arquivo de entrada para o compilador.");
+        printf("Please provide an input file.");
         return -1;
     }
     FILE *arq_compilado = fopen(argv[1], "r");
     if (!arq_compilado) {
-        printf("O arquivo fornecido para compilação não é válido.");
+        printf("The input file provided is not recognizeble.");
         return -2;
     }
 
     yyin = arq_compilado;
-    yyparse(); // Esta chamada tentará analisar o arquivo
+    yyparse(); // Chamada para iniciar a análise sintática;
 
     // Verifica se houve erros léxicos OU sintáticos
     if (errors_count > 0 || syntax_error_occurred) {
-        printf("!!! Análise do arquivo concluída com ERROS !!!\n");
+        printf("!!! Syntatic analysis concluded with ERRORS !!!\n");
     } else {
-        printf("!!! Análise sintática bem sucedida no arquivo !!!\n");
+        printf("!!! Syntatic analysis was successfully concluded !!!\n");
     }
 
-    fclose(arq_compilado);
+    fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
     return 0;
 }
 
