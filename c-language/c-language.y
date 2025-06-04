@@ -12,7 +12,8 @@ extern FILE *yyin; // Indica que a entrada do analisador léxico é um arquivo;
 
 // Informações usadas na análise sintática:
 int syntax_error_occurred = 0; // Contador de erro sintático;
-void yyerror(const char *s); // Definição da função de erro;
+void yyerror(const char *s); // Definição da função de erro (somente para o Bison não reclamar);
+void print_error(const char *msg); // Nossa função de erro;
 %}
 
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
@@ -60,7 +61,7 @@ var_decl    :   tipo_especificador ID SEMICOLON
 // Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
-                    | OB error CB {yyerrok;}
+                    | OB error CB {print_error("Invalid array dimension."); yyerrok;}
                     ;
 
 // Tipos de dados
@@ -206,13 +207,14 @@ arg_list   :    expressao
 #define RESET   "\x1b[0m"
 
 void yyerror(const char *s) {
-    // Define como um erro deve ser impresso na saída de erro;
-    fprintf(stderr, RED "Syntax error ocurred at (line,column):(%d, %d):\n"
-                    BLUE "Message:" RESET " %s\n\n", 
-                    line_number, column_number, s);
-    syntax_error_occurred = 1; // Seta a flag quando um erro sintático ocorre
+    syntax_error_occurred++;
 }
 
+void print_error(const char *msg) {
+    fprintf(stderr, RED "Syntax error ocurred at (line,column):(%d, %d):\n"
+                    BLUE "Message:" RESET " %s\n\n", 
+                    line_number, column_number, msg);
+}
 
 int main(int argc, char **argv) {
     if (argc < 2){
