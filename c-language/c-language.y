@@ -55,13 +55,11 @@ decl    :   var_decl
 // trata o erro de identificador ausente
 var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
-                |error SEMICOLON { yyerror("Missing identifier.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                 ;
 
 // Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
-                    |error SEMICOLON { yyerror("Unrecognized array dimension.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                     ;
 
 // Tipos de dados
