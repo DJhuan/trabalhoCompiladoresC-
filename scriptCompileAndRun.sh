@@ -6,6 +6,8 @@ if [ $# -lt 3 ]; then
   exit 1
 fi
 
+echo "--== SCRIPT FUNCIONANDO ==--"
+
 ARQ_YACC="$1"
 ARQ_LEX="$2"
 ARQ_TESTE="$3"
@@ -48,6 +50,7 @@ if [ ! -f "analise-sintatica" ]; then
 fi
 
 echo "Iniciando analisador sintático. Compilando o arquivo: $ARQ_TESTE"
+echo
 ./analise-sintatica ../"$ARQ_TESTE"
 
 echo "--== FIM DA EXECUÇÃO ==--"

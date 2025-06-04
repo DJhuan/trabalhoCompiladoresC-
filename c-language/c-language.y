@@ -201,10 +201,15 @@ arg_list   :    expressao
                 ;
 %%
 
+#define RED     "\x1b[31m"
+#define GREEN   "\x1b[32m"
+#define BLUE    "\x1b[34m"
+#define RESET   "\x1b[0m"
+
 void yyerror(const char *s) {
     // Define como um erro deve ser impresso na saída de erro;
-    fprintf(stderr, "Syntax error ocurred at (line,column):(%d, %d):\n"
-                    "Message: %s\n\n", 
+    fprintf(stderr, RED "Syntax error ocurred at (line,column):(%d, %d):\n"
+                    BLUE "Message:" RESET " %s\n\n", 
                     line_number, column_number, s);
     syntax_error_occurred = 1; // Seta a flag quando um erro sintático ocorre
 }
@@ -226,9 +231,13 @@ int main(int argc, char **argv) {
 
     // Verifica se houve erros léxicos OU sintáticos
     if (errors_count > 0 || syntax_error_occurred) {
-        printf("!!! Syntatic analysis concluded with ERRORS !!!\n");
+        printf(RED "*-------------------------------------------------*\n");
+        printf("| !!! Syntatic analysis concluded with ERRORS !!! |\n");
+        printf(RED "*-------------------------------------------------*\n" RESET);
     } else {
-        printf("!!! Syntatic analysis was successfully concluded !!!\n");
+        printf(GREEN"*------------------------------------------------------*\n");
+        printf("| !!! Syntatic analysis was successfully concluded !!! |\n");
+        printf("*------------------------------------------------------*\n"RESET);
     }
 
     fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
