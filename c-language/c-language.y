@@ -60,6 +60,7 @@ var_decl    :   tipo_especificador ID SEMICOLON
 // Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
+                    | OB error CB {yyerror("Invalid array dimension."); yyerrok;}
                     ;
 
 // Tipos de dados
