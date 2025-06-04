@@ -15,6 +15,7 @@ int syntax_error_occurred = 0; // Contador de erro sintático;
 void yyerror(const char *s); // Definição da função de erro;
 %}
 
+// Tokens de tipos de dados, palavras-chave, operadores e símbolos
 %token ID
 %token INT FLOAT CHAR
 %token IF ELSE WHILE RETURN
@@ -29,35 +30,41 @@ void yyerror(const char *s); // Definição da função de erro;
 %token STRUCT 
 %token VOID
 
-
+// Precedência 
 %left SOMA
 %left MULT
 %right EQ
 %left RELOP
 %%
 
-
+// Programa principal: composto por uma lista de declarações
 programa    :   decl_lista
                 ;
 
+// Declarações
 decl_lista   :  decl decl_lista
                 |decl
                 ;
 
+// Declaração: variável ou função
 decl    :   var_decl
             |func_decl
             ;
 
+// Declaração de variável: variável simples ou matriz
+// trata o erro de identificador ausente
 var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
                 |error SEMICOLON { yyerror("Missing identifier.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                 ;
 
+// Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
                     |error SEMICOLON { yyerror("Unrecognized array dimension.\nIgnoring inputs untill the next semicolon"); yyerrok; }
                     ;
 
+// Tipos de dados
 tipo_especificador  :   INT
                         |FLOAT
                         |CHAR
@@ -65,41 +72,50 @@ tipo_especificador  :   INT
                         |STRUCT ID OCB atributos_decl CCB 
                         ;
 
+// Atributos de struct
 atributos_decl  :   var_decl
                     |var_decl atributos_decl
                     ;
 
+// Declaração de função: tipo, id, parâmetros e corpo
 func_decl   :   tipo_especificador ID OP params CP composto_decl
                 ;
 
+// Função com ou sem parâmetros
 params  :   params_lista
             |VOID
             ;
 
+// Parâmetros
 params_lista    :   param
                     |param COMMA params_lista
                     ;
 
+// Parâmetros simples ou vetoriais
 param   :   tipo_especificador ID 
             |tipo_especificador ID OB CB
             ;
 
+// Corpo da função: declarações locais e comandos
 composto_decl   :   OCB local_decl comando_lista CCB 
                     ;
 
+// Declarações locais
 local_decl  :   var_decl local_decl
                 | /* vazio */
                 ;
 
+// Lista de comandos
 comando_lista   :   comando comando_lista
                     | /* vazio */
                     ;
 
+// Distingue if-else casado e não casado
 comando :   comando_casado
             |comando_singular
             ;
 
-/* Neste caso, TODO IF está associado com um ELSE; */
+// Neste caso, TODO IF está associado com um ELSE;
 comando_casado  :   expressao_decl
                     |composto_decl
                     |iteracao_decl
@@ -107,34 +123,40 @@ comando_casado  :   expressao_decl
                     |IF OP expressao CP comando_casado ELSE comando_casado
                     ;
 
-/* Neste caso, pode haver um IF sem ELSE */
+// Neste caso, pode haver um IF sem ELSE
 comando_singular    :   IF OP expressao CP comando
                         |IF OP expressao CP comando_casado ELSE comando_singular
                         ;
 
+// Comando de expressão
 expressao_decl  :   expressao SEMICOLON
                     |SEMICOLON
                     ;
 
+// Estrutura WHILE
 iteracao_decl   :   WHILE OP expressao CP comando_casado
                     ;
 
+// Retorno de função: simples ou com valor
 retorno_decl    :   RETURN SEMICOLON 
                     | RETURN expressao SEMICOLON
                     ;
 
+// Expressão: atribuição ou expressão simples
 expressao   :   var EQ expressao 
                 |expressao_simples
                 ;
-
+// Variável
 var    :    ID
             |ID var_aux
             ;
 
+// Acesso aos elementos do vetor/matriz
 var_aux :   OB expressao CB
             |OB expressao CB var_aux
             ;
 
+// Expressão simples: aritmética ou relacional
 expressao_simples   :   expressao_soma RELOP expressao_soma 
                         |expressao_soma
                         ;
@@ -143,6 +165,7 @@ expressao_soma  :   termo
                     |termo expressao_somatorio
                     ;
 
+// Operações de soma e subtração
 expressao_somatorio :   SOMA termo 
                         | SOMA termo expressao_somatorio
                         ;
@@ -151,10 +174,12 @@ termo   :   fator
             | fator termo_aux
             ;
 
+// Operações de multiplicação e divisão
 termo_aux   :   MULT fator 
                 |MULT fator termo_aux
                 ;
 
+// Operandos básicos
 fator   :   OP expressao CP 
             |var
             |ativacao
@@ -162,6 +187,7 @@ fator   :   OP expressao CP
             |NUM_INT
             ;
 
+// Chamada da função
 ativacao    :   ID OP args CP
                 ;
 
@@ -169,13 +195,14 @@ args    :   arg_list
             | /* vazio */
             ;
 
+// Lista de argumentos passados para a função
 arg_list   :    expressao
                 |expressao COMMA arg_list
                 ;
 %%
 
 void yyerror(const char *s) {
-    // Define como um erro deve ser impresso ma saída de erro;
+    // Define como um erro deve ser impresso na saída de erro;
     fprintf(stderr, "Syntax error ocurred at (line,column):(%d, %d):\n"
                     "Message: %s\n\n", 
                     line_number, column_number, s);
