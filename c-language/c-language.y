@@ -60,7 +60,7 @@ var_decl    :   tipo_especificador ID SEMICOLON
 // Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
-                    | OB error CB {yyerror("Invalid array dimension."); yyerrok;}
+                    | OB error CB {yyerrok;}
                     ;
 
 // Tipos de dados
@@ -91,12 +91,12 @@ params_lista    :   param
                     ;
 
 // Parâmetros simples ou vetoriais
-param   :   tipo_especificador ID 
+param   :   tipo_especificador ID
             |tipo_especificador ID OB CB
             ;
 
 // Corpo da função: declarações locais e comandos
-composto_decl   :   OCB local_decl comando_lista CCB 
+composto_decl   :   OCB local_decl comando_lista CCB
                     ;
 
 // Declarações locais
