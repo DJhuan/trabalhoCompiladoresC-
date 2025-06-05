@@ -102,6 +102,7 @@ param   :   tipo_especificador ID
 
 // Corpo da função: declarações locais e comandos
 composto_decl   :   OCB local_decl comando_lista CCB
+                    | OCB local_decl comando_lista error {print_error("Missing '}'"); yyerrok;}
                     ;
 
 // Declarações locais
@@ -158,6 +159,7 @@ var    :    ID
 // Acesso aos elementos do vetor/matriz
 var_aux :   OB expressao CB
             |OB expressao CB var_aux
+            |OB error CB { print_error("Invalid array access. Evaluate your expression"); yyerrok; }
             ;
 
 // Expressão simples: aritmética ou relacional
@@ -191,7 +193,7 @@ fator   :   OP expressao CP
             |NUM_INT
             ;
 
-// Chamada da função
+// Chamada da função 
 ativacao    :   ID OP args CP
                 |ID OP error CP { print_error("Invalid arguments in function call."); yyerrok; }
                 ;

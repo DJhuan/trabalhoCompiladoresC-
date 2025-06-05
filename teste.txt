@@ -3,9 +3,13 @@ int soma(void) {
 }
 
 int subtrair(void {
-
+    int vet[3];
+    vet[];
 }
 
 int subtrair() {
     int socorro;
 }
+
+float terraMaldito(void) {
+    int mds;
