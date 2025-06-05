@@ -56,6 +56,7 @@ decl    :   var_decl
 // trata o erro de identificador ausente
 var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
+                |tipo_especificador ID error {print_error("Missing ';'"); yyerrok;}
                 ;
 
 // Dimensão de matriz: unica ou múltipla
@@ -79,6 +80,8 @@ atributos_decl  :   var_decl
 
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl   :   tipo_especificador ID OP params CP composto_decl
+                |tipo_especificador ID OP params error composto_decl  {print_error("Invalid function declaration. Missing ')'"); yyerrok;}
+                |tipo_especificador ID OP error CP composto_decl  {print_error("Invalid function declaration. Put at least a 'void'"); yyerrok;}
                 ;
 
 // Função com ou sem parâmetros
@@ -189,6 +192,7 @@ fator   :   OP expressao CP
 
 // Chamada da função
 ativacao    :   ID OP args CP
+                |ID OP error CP { print_error("Invalid arguments in function call."); yyerrok; }
                 ;
 
 args    :   arg_list

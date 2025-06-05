@@ -1,0 +1,11 @@
+int soma(void) {
+    soma(s s);
+}
+
+int subtrair(void {
+
+}
+
+int subtrair() {
+    int socorro;
+}
