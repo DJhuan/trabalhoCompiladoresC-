@@ -70,7 +70,7 @@ tipo_especificador  :   INT
                         |FLOAT
                         |CHAR
                         |VOID
-                        |STRUCT ID OCB atributos_decl CCB 
+                        |STRUCT ID OCB atributos_decl CCB
                         ;
 
 // Atributos de struct
@@ -97,6 +97,7 @@ params_lista    :   param
 // Parâmetros simples ou vetoriais
 param   :   tipo_especificador ID
             |tipo_especificador ID OB CB
+            |tipo_especificador ID error CB {print_error("Missing open bracket: '['"); yyerrok;} 
             ;
 
 // Corpo da função: declarações locais e comandos
@@ -164,7 +165,7 @@ expressao_simples   :   expressao_soma RELOP expressao_soma
                         |expressao_soma
                         ;
 
-expressao_soma  :   termo 
+expressao_soma  :   termo
                     |termo expressao_somatorio
                     ;
 
@@ -211,13 +212,13 @@ arg_list   :    expressao
 #define RESET   "\x1b[0m"
 
 void yyerror(const char *s) {
+    fprintf(stderr, RED "!SYNTATIC ERROR ocurred at (%d, %d):\n" RESET,
+                    line_number, column_number);
     syntax_error_occurred++;
 }
 
 void print_error(const char *msg) {
-    fprintf(stderr, RED "Syntax error ocurred at (line,column):(%d, %d):\n"
-                    BLUE "Message:" RESET " %s\n\n", 
-                    line_number, column_number, msg);
+    fprintf(stderr, BLUE "Message:" RESET " %s\n\n", msg);
 }
 
 int main(int argc, char **argv) {
