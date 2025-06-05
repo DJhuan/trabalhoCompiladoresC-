@@ -169,6 +169,7 @@ expressao_simples   :   expressao_soma RELOP expressao_soma
 
 expressao_soma  :   termo
                     |termo expressao_somatorio
+                    |error expressao_somatorio { print_error("Invalid expression. Missing operand or operator."); yyerrok; }
                     ;
 
 // Operações de soma e subtração
@@ -186,7 +187,8 @@ termo_aux   :   MULT fator
                 ;
 
 // Operandos básicos
-fator   :   OP expressao CP 
+fator   :   OP expressao CP
+            |OP error CP { print_error("Missing operand or operator for expression."); yyerrok; }
             |var
             |ativacao
             |NUM_FLOAT
