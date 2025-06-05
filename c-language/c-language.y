@@ -81,7 +81,7 @@ atributos_decl  :   var_decl
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl   :   tipo_especificador ID OP params CP composto_decl
                 |tipo_especificador ID OP params error composto_decl  {print_error("Invalid function declaration. Missing ')'"); yyerrok;}
-                |tipo_especificador ID OP error CP composto_decl  {print_error("Invalid function declaration. Put at least a 'void'"); yyerrok;}
+                |tipo_especificador ID OP error CP composto_decl  {print_error("Invalid function declaration."); yyerrok;}
                 ;
 
 // Função com ou sem parâmetros
@@ -102,7 +102,6 @@ param   :   tipo_especificador ID
 
 // Corpo da função: declarações locais e comandos
 composto_decl   :   OCB local_decl comando_lista CCB
-                    | OCB local_decl comando_lista error {print_error("Missing '}'"); yyerrok;}
                     ;
 
 // Declarações locais
@@ -140,6 +139,7 @@ expressao_decl  :   expressao SEMICOLON
 
 // Estrutura WHILE
 iteracao_decl   :   WHILE OP expressao CP comando_casado
+                    |WHILE OP error CP { print_error("Invalid expression in while loop."); yyerrok; }
                     ;
 
 // Retorno de função: simples ou com valor
@@ -188,7 +188,7 @@ termo_aux   :   MULT fator
 
 // Operandos básicos
 fator   :   OP expressao CP
-            |OP error CP { print_error("Missing operand or operator for expression."); yyerrok; }
+            |OP error CP { print_error("Empty expression inside parenthesis."); yyerrok; }
             |var
             |ativacao
             |NUM_FLOAT
