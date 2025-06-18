@@ -1,0 +1,16 @@
+/*socorro 
+  sdsd*/
+
+int a;
+
+
+/* venci 
+ caralho felicidade
+ gloria gloria */
+
+
+int somar() {
+    int i;
+}
+
+int a = 1;

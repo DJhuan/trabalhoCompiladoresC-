@@ -11,7 +11,7 @@ int errors_count = 0;
 
 %option noyywrap
 
-delim                   [ \t]
+delim                   [ \t\r]
 ws                      {delim}+
 letter                  [a-zA-Z]
 digit                   [0-9]
@@ -20,7 +20,7 @@ num_int                 {digit}+
 character               \'.\'
 id                      {letter}({letter}|{digit})*
 num_float               {digit}+(\.{digit}+)?([Ee][+-]?{digit}+)?
-comment                 \/\\*([^*]|\*+[^*/])*\*+\/
+comment                 \/\*([^*]|\*+[^/])*\*+\/
 other                   .
 
 %%
@@ -60,7 +60,16 @@ other                   .
 
 {ws}        { column_number += yyleng; }
 "\n"        { line_number++; column_number = 1; }
-{comment}   { column_number += yyleng; }
+{comment} {
+    for (int i = 0; i < yyleng; i++) {
+        if (yytext[i] == '\n') {
+            line_number++;
+            column_number = 1;
+        } else {
+            column_number++;
+        }
+    }
+}
 
 {id}        { column_number += yyleng; return ID; }
 {num_int}   { column_number += yyleng; return NUM_INT; }
