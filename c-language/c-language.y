@@ -45,11 +45,13 @@ programa    :   decl_lista
 // Declarações
 decl_lista   :  decl decl_lista
                 |decl
+                |error decl_lista { print_error("Error in declaration list."); yyerrok; }
                 ;
 
 // Declaração: variável ou função
 decl    :   var_decl
             |func_decl
+            |error SEMICOLON { print_error("Invalid declaration."); yyerrok; }
             ;
 
 // Declaração de variável: variável simples ou matriz
@@ -87,21 +89,25 @@ func_decl   :   tipo_especificador ID OP params CP composto_decl
 // Função com ou sem parâmetros
 params  :   params_lista
             |VOID
+            | error {print_error("Parâmetro inválido."); yyerrok;}
             ;
 
 // Parâmetros
 params_lista    :   param
                     |param COMMA params_lista
+                    |param error COMMA params_lista { print_error("Invalid parameter. Skipping."); yyerrok; }
                     ;
 
 // Parâmetros simples ou vetoriais
 param   :   tipo_especificador ID
             |tipo_especificador ID OB CB
+           // |tipo_especificador error {print_error("Wrong parameter"); yyerrok;} 
             |tipo_especificador ID error CB {print_error("Missing open bracket: '['"); yyerrok;} 
             ;
 
 // Corpo da função: declarações locais e comandos
 composto_decl   :   OCB local_decl comando_lista CCB
+                    |OCB error CCB { print_error("Error inside function body."); yyerrok; }
                     ;
 
 // Declarações locais
@@ -117,6 +123,7 @@ comando_lista   :   comando comando_lista
 // Distingue if-else casado e não casado
 comando :   comando_casado
             |comando_singular
+            | error SEMICOLON { print_error("Invalid command."); yyerrok; }
             ;
 
 // Neste caso, TODO IF está associado com um ELSE;
@@ -150,6 +157,7 @@ retorno_decl    :   RETURN SEMICOLON
 // Expressão: atribuição ou expressão simples
 expressao   :   var EQ expressao 
                 |expressao_simples
+                | error { print_error("Invalid expression."); yyerrok; }
                 ;
 // Variável
 var    :    ID
@@ -207,6 +215,7 @@ args    :   arg_list
 // Lista de argumentos passados para a função
 arg_list   :    expressao
                 |expressao COMMA arg_list
+                |error COMMA arg_list { print_error("Invalid argument. Skipping."); yyerrok; }
                 ;
 %%
 
