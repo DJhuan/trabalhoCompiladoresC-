@@ -56,13 +56,11 @@ decl    :   var_decl
 // trata o erro de identificador ausente
 var_decl    :   tipo_especificador ID SEMICOLON
                 |tipo_especificador ID dimen_matriz SEMICOLON
-                |tipo_especificador ID error {print_error("Missing ';'"); yyerrok;}
                 ;
 
 // Dimensão de matriz: unica ou múltipla
 dimen_matriz    :   OB NUM_INT CB
                     | OB NUM_INT CB dimen_matriz
-                    | OB error CB {print_error("Invalid array dimension."); yyerrok;}
                     ;
 
 // Tipos de dados
@@ -80,8 +78,6 @@ atributos_decl  :   var_decl
 
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl   :   tipo_especificador ID OP params CP composto_decl
-                |tipo_especificador ID OP params error composto_decl  {print_error("Invalid function declaration. Missing ')'"); yyerrok;}
-                |tipo_especificador ID OP error CP composto_decl  {print_error("Invalid function declaration."); yyerrok;}
                 ;
 
 // Função com ou sem parâmetros
@@ -97,7 +93,6 @@ params_lista    :   param
 // Parâmetros simples ou vetoriais
 param   :   tipo_especificador ID
             |tipo_especificador ID OB CB
-            |tipo_especificador ID error CB {print_error("Missing open bracket: '['"); yyerrok;} 
             ;
 
 // Corpo da função: declarações locais e comandos
@@ -139,7 +134,6 @@ expressao_decl  :   expressao SEMICOLON
 
 // Estrutura WHILE
 iteracao_decl   :   WHILE OP expressao CP comando_casado
-                    |WHILE OP error CP { print_error("Invalid expression in while loop."); yyerrok; }
                     ;
 
 // Retorno de função: simples ou com valor
@@ -159,7 +153,6 @@ var    :    ID
 // Acesso aos elementos do vetor/matriz
 var_aux :   OB expressao CB
             |OB expressao CB var_aux
-            |OB error CB { print_error("Invalid array access. Evaluate your expression"); yyerrok; }
             ;
 
 // Expressão simples: aritmética ou relacional
@@ -169,7 +162,6 @@ expressao_simples   :   expressao_soma RELOP expressao_soma
 
 expressao_soma  :   termo
                     |termo expressao_somatorio
-                    |error expressao_somatorio { print_error("Invalid expression. Missing operand or operator."); yyerrok; }
                     ;
 
 // Operações de soma e subtração
@@ -188,7 +180,6 @@ termo_aux   :   MULT fator
 
 // Operandos básicos
 fator   :   OP expressao CP
-            |OP error CP { print_error("Empty expression inside parenthesis."); yyerrok; }
             |var
             |ativacao
             |NUM_FLOAT
@@ -197,7 +188,6 @@ fator   :   OP expressao CP
 
 // Chamada da função 
 ativacao    :   ID OP args CP
-                |ID OP error CP { print_error("Invalid arguments in function call."); yyerrok; }
                 ;
 
 args    :   arg_list
