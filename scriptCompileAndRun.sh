@@ -42,7 +42,7 @@ if [ ! -f "scanner.yy.c" ]; then
 fi
 
 echo "Compilando analisador sintático."
-gcc scanner.yy.c parser.tab.c -o analise-sintatica -lfl
+gcc scanner.yy.c parser.tab.c TabDeSimbolos.c -o analise-sintatica -lfl
 
 if [ ! -f "analise-sintatica" ]; then
   echo "Erro na compilação do analisador sintático!"

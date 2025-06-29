@@ -1,6 +1,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include "TabDeSimbolos.h"
 
 // Informações usadas pelo Bison que vem do Flex:
 extern int line_number; // Número da linha do erro léxico;
@@ -216,6 +217,8 @@ void print_error(const char *msg) {
 }
 
 int main(int argc, char **argv) {
+    TabDeSimbolos *tab = new_TabDeSimbolos("TabDeSimbolos");
+
     if (argc < 2){
         printf("Please provide an input file.");
         return -1;
@@ -241,6 +244,9 @@ int main(int argc, char **argv) {
     }
 
     fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
+
+    printNome(tab);
+    del_TabDeSimbolos(tab);
     return 0;
 }
 
