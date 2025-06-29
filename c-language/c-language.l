@@ -80,24 +80,29 @@ other                   .
 {error_id} { 
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n Maybe you want an id, if so, the id cannot start with a number \n", 
         ++errors_count, line_number, column_number, yytext); 
+    //input();
 }
 
 "=!" {
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean != ?\n", 
         ++errors_count, line_number, column_number, yytext);
+        column_number += yyleng;
 }
 "=>" {
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean >= ?\n",
         ++errors_count, line_number, column_number, yytext); 
+        column_number += yyleng;
 }
 "=<" {
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\". Did you mean <= ?\n",
         ++errors_count, line_number, column_number, yytext); 
+        column_number += yyleng;
 }
 
 {other} { 
     fprintf(yyout, "(%d) Lexical error in line %d and col %d. Input -> \"%s\"\n", 
-        ++errors_count, line_number, column_number, yytext); 
+        ++errors_count, line_number, column_number, yytext);
+        column_number += yyleng; 
 }
 
 %%

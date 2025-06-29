@@ -1,16 +1,8 @@
-/*socorro 
-  sdsd*/
+int isadora;
 
-int a;
-
-
-/* venci 
- caralho felicidade
- gloria gloria */
-
-
-int somar() {
+int jhuan (int isa float isa){
     int i;
 }
 
+int anaTriste
 int a = 1;
