@@ -23,25 +23,27 @@ struct EntradaTDS
     EntradaTDS *proximo; // Marca quem é a próxima entrada da tabela;
 };
 
-typedef struct
+typedef struct TabDeSimbolos TabDeSimbolos;
+
+struct TabDeSimbolos
 { // Define a tabela de símbolos;
     EntradaTDS *tabela[MAX_ENTRADAS];
-} TabDeSimbolos;
-
+    TabDeSimbolos *anterior;
+};
 
 // Retorna uma nova tabela de símbolos;
-TabDeSimbolos* new_TabDeSimbolos();
+TabDeSimbolos *new_TabDeSimbolos();
 
 // Deleta uma tabela de símbolos;
-void delete_TabDeSimbolos(TabDeSimbolos *tds);
+void delete_TabDeSimbolos();
 
 // Insere um novo símbolo na tabela de símbolos;
-EntradaTDS* TDS_novoSimbolo(TabDeSimbolos* tds, const char *lexema, TipoDado tipo);
+EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo);
 
 // Encontra um símbolo na tabela de símbolos pelo nome;
-EntradaTDS* TDS_encontrarSimbolo(const TabDeSimbolos* tds, const char *lexema);
+EntradaTDS *TDS_encontrarSimbolo(const char *lexema);
 
 // Imprime a tabela de símbolos;
-void TDS_imprimir(const TabDeSimbolos* tds);
+void TDS_imprimir(const TabDeSimbolos *tds);
 
 #endif // TabDeSimbolos
