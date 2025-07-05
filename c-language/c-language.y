@@ -1,3 +1,7 @@
+%code requires {
+    #include "TabDeSimbolos.h"
+}
+
 %{
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,9 +21,14 @@ void yyerror(const char *s); // Definição da função de erro (somente para o 
 void print_error(const char *msg); // Nossa função de erro;
 %}
 
+%union {
+    char *identifier;       // para armazenar lexemas (ID)
+    TipoDado tipo;   // para tipos
+}
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
-%token ID
-%token INT FLOAT CHAR
+// Tokens com tipo
+%token <identifier> ID
+%token INT FLOAT CHAR VOID STRUCT
 %token IF ELSE WHILE RETURN
 %token SOMA 
 %token MULT
@@ -29,8 +38,9 @@ void print_error(const char *msg); // Nossa função de erro;
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
 %token CHARACTER
-%token STRUCT 
-%token VOID
+
+// Não-terminais com tipo
+%type <tipo> tipo_especificador
 
 // Precedência 
 %left SOMA
@@ -57,8 +67,14 @@ decl    :   var_decl
 
 // Declaração de variável: variável simples ou matriz
 // trata o erro de identificador ausente
-var_decl    :   tipo_especificador ID SEMICOLON
-                |tipo_especificador ID dimen_matriz SEMICOLON
+var_decl    :   tipo_especificador ID SEMICOLON {
+                printf("Inserindo id %s do tipo %d\n", $2, $1);
+                    TDS_novoSimbolo($2, $1); 
+                }
+                |tipo_especificador ID dimen_matriz SEMICOLON {
+                printf("Inserindo id %s do tipo %d\n", $2, $1);
+                    TDS_novoSimbolo($2, $1);
+                } 
                 ;
 
 // Dimensão de matriz: unica ou múltipla
@@ -67,20 +83,21 @@ dimen_matriz    :   OB NUM_INT CB
                     ;
 
 // Tipos de dados
-tipo_especificador  :   INT
-                        |FLOAT
-                        |CHAR
-                        |VOID
-                        |STRUCT ID OCB atributos_decl CCB
-                        ;
-
+tipo_especificador: INT    { $$ = TIPO_INT; }
+                    |FLOAT  { $$ = TIPO_FLOAT; }
+                    |CHAR   { $$ = TIPO_CHAR; }
+                    |VOID   { $$ = TIPO_VOID; }
+                    |STRUCT ID OCB atributos_decl CCB { $$ = STRUCT; }
+                    ;
 // Atributos de struct
 atributos_decl  :   var_decl
                     |var_decl atributos_decl
                     ;
 
 // Declaração de função: tipo, id, parâmetros e corpo
-func_decl   :   tipo_especificador ID OP params CP composto_decl
+func_decl   :   tipo_especificador ID OP params CP composto_decl{
+                    TDS_novoSimbolo($2, $1);
+                }   
                 ;
 
 // Função com ou sem parâmetros
@@ -96,16 +113,27 @@ params_lista    :   param
                     ;
 
 // Parâmetros simples ou vetoriais
-param   :   tipo_especificador ID
-            |tipo_especificador ID OB CB
+param   :   tipo_especificador ID {
+                printf("Inserindo id %s do tipo %d\n", $2, $1);
+                TDS_novoSimbolo($2, $1);
+            }
+            |tipo_especificador ID OB CB{
+                printf("Inserindo id %s do tipo %d\n", $2, $1);
+                TDS_novoSimbolo($2, $1);
+            }
            // |tipo_especificador error {print_error("Wrong parameter"); yyerrok;} 
             |tipo_especificador ID error CB {print_error("Missing open bracket: '['"); yyerrok;} 
             ;
 
 // Corpo da função: declarações locais e comandos
-composto_decl   :   OCB local_decl comando_lista CCB
-                    |OCB error CCB { print_error("Error inside function body."); yyerrok; }
-                    ;
+composto_decl : OCB {
+                    new_TabDeSimbolos();
+                } 
+                local_decl comando_lista CCB {
+                    delete_TabDeSimbolos();
+                }
+                | OCB error CCB { print_error("Error inside function body."); yyerrok; }
+                ;
 
 // Declarações locais
 local_decl  :   var_decl local_decl
@@ -156,8 +184,16 @@ expressao   :   var EQ expressao
                 | error { print_error("Invalid expression."); yyerrok; }
                 ;
 // Variável
-var    :    ID
-            |ID var_aux
+var    :    ID  {
+                if (TDS_encontrarSimbolo($1) == NULL) {
+                    print_error("Variável usada mas não declarada.");
+                }
+            }
+            |ID var_aux {
+                if (TDS_encontrarSimbolo($1) == NULL) {
+                    print_error("Variável usada mas não declarada.");
+                }
+            }
             ;
 
 // Acesso aos elementos do vetor/matriz
@@ -253,10 +289,11 @@ int main(int argc, char **argv) {
         printf("*------------------------------------------------------*\n"RESET);
     }
 
+    TDS_imprimir(tab);
+
     fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
 
-    printNome(tab);
-    del_TabDeSimbolos(tab);
+
     return 0;
 }
 

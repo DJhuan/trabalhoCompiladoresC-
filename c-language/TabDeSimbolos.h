@@ -5,12 +5,13 @@
 
 #define MAX_ENTRADAS 127
 
-typedef enum
-{ // Define os tipos de dados possíveis;
-    FLOAT,
-    INT,
-    CHAR,
-    STRUCT
+// Define os tipos de dados possíveis
+typedef enum {
+    TIPO_FLOAT,
+    TIPO_INT,
+    TIPO_CHAR,
+    TIPO_STRUCT,
+    TIPO_VOID
 } TipoDado;
 
 typedef struct EntradaTDS EntradaTDS;
@@ -20,7 +21,7 @@ struct EntradaTDS
     char *lexema;
     TipoDado tipo;
     int endereco;
-    EntradaTDS *proximo; // Marca quem é a próxima entrada da tabela;
+    EntradaTDS *proximo; // Próxima entrada na lista da tabela (para colisões)
 };
 
 typedef struct TabDeSimbolos TabDeSimbolos;
@@ -28,22 +29,15 @@ typedef struct TabDeSimbolos TabDeSimbolos;
 struct TabDeSimbolos
 { // Define a tabela de símbolos;
     EntradaTDS *tabela[MAX_ENTRADAS];
-    TabDeSimbolos *anterior;
+    TabDeSimbolos *anterior; // Tabela anterior (para escopos aninhados)
 };
 
-// Retorna uma nova tabela de símbolos;
-TabDeSimbolos *new_TabDeSimbolos();
-
-// Deleta uma tabela de símbolos;
+// Protótipos das funções públicas:
+const char* tipo_para_string(TipoDado tipo);
+TabDeSimbolos* new_TabDeSimbolos();
 void delete_TabDeSimbolos();
+EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo);
+EntradaTDS* TDS_encontrarSimbolo(const char* lexema);
+void TDS_imprimir(const TabDeSimbolos* tds);
 
-// Insere um novo símbolo na tabela de símbolos;
-EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo);
-
-// Encontra um símbolo na tabela de símbolos pelo nome;
-EntradaTDS *TDS_encontrarSimbolo(const char *lexema);
-
-// Imprime a tabela de símbolos;
-void TDS_imprimir(const TabDeSimbolos *tds);
-
-#endif // TabDeSimbolos
+#endif // SYMTABLE

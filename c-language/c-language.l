@@ -2,6 +2,7 @@
 /*-------------------------- Definitions --------------------------*/
 #include<stdio.h>
 #include<string.h>
+#include "c-language.tab.h"
 #include "parser.tab.h"
 
 int line_number = 1;
@@ -71,7 +72,7 @@ other                   .
     }
 }
 
-{id}        { column_number += yyleng; return ID; }
+{id}        { yylval.identifier = strdup(yytext); column_number += yyleng; return ID; }
 {num_int}   { column_number += yyleng; return NUM_INT; }
 {num_float} { column_number += yyleng; return NUM_FLOAT; }
 {character} { column_number += yyleng; return CHARACTER; }
