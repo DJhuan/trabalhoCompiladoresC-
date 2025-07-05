@@ -36,7 +36,8 @@ struct TabDeSimbolos
 };
 
 // Protótipos das funções públicas:
-const char* tipo_para_string(TipoDado tipo);
+const char* tipo_para_string(TipoDado tipo, EntradaTDS *ent);
+void tipoStruct(char* nome, TipoDado tipo);
 TabDeSimbolos* new_TabDeSimbolos();
 void delete_TabDeSimbolos();
 EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo);

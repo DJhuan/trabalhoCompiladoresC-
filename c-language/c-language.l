@@ -2,7 +2,6 @@
 /*-------------------------- Definitions --------------------------*/
 #include<stdio.h>
 #include<string.h>
-#include "c-language.tab.h"
 #include "parser.tab.h"
 
 int line_number = 1;

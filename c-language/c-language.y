@@ -91,6 +91,7 @@ tipo_especificador: INT    { $$ = TIPO_INT; }
                     |VOID   { $$ = TIPO_VOID; }
                     |STRUCT ID OCB {
                         // Cria nova tabela para campos da struct e empilha
+                        
                         TabDeSimbolos *escopo_struct = new_TabDeSimbolos();
                         TDS_empilhar(escopo_struct);
                     }
@@ -99,6 +100,7 @@ tipo_especificador: INT    { $$ = TIPO_INT; }
                         TDS_imprimir(TDS_topo(), "Campos da Struct");
                         TDS_desempilhar();
 
+                        tipoStruct($2, TIPO_STRUCT_DEF);
                         $$ = TIPO_STRUCT_DEF;
                     }
                     ;
