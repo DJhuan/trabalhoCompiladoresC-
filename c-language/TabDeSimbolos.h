@@ -11,10 +11,12 @@ typedef enum {
     TIPO_INT,
     TIPO_CHAR,
     TIPO_STRUCT,
-    TIPO_VOID
+    TIPO_VOID,
+    TIPO_STRUCT_DEF 
 } TipoDado;
 
 typedef struct EntradaTDS EntradaTDS;
+typedef struct TabDeSimbolos TabDeSimbolos;
 
 struct EntradaTDS
 { // Define uma entrada na tabela de símbolos;
@@ -22,9 +24,10 @@ struct EntradaTDS
     TipoDado tipo;
     int endereco;
     EntradaTDS *proximo; // Próxima entrada na lista da tabela (para colisões)
+    struct TabDeSimbolos *tabela_campos;
+    char *nomeStruct;
 };
 
-typedef struct TabDeSimbolos TabDeSimbolos;
 
 struct TabDeSimbolos
 { // Define a tabela de símbolos;

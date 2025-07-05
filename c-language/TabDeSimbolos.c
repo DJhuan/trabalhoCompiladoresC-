@@ -25,7 +25,7 @@ const char *tipo_para_string(TipoDado tipo) {
         case TIPO_INT: return "INT";
         case TIPO_FLOAT: return "FLOAT";
         case TIPO_CHAR: return "CHAR";
-        case TIPO_STRUCT: return "STRUCT";
+        case TIPO_STRUCT_DEF: return "STRUCT";
         default: return "???";
     }
 }
@@ -36,7 +36,7 @@ static int tamanho_tipo(TipoDado tipo) {
         case TIPO_INT: return 4;
         case TIPO_FLOAT: return 8;
         case TIPO_CHAR: return 1;
-        case TIPO_STRUCT: return 0; 
+        case TIPO_STRUCT: return 1; 
         default: return 0;
     }
 }
@@ -160,6 +160,20 @@ EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
     return NULL;
 }
 
+void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
+    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
+    for (int i = 0; i < MAX_ENTRADAS; i++) {
+        EntradaTDS *ent = tds->tabela[i];
+        while (ent) {
+            printf("Nome: %-15s Tipo: %-7s Endereço: %d\n",
+                   ent->lexema, tipo_para_string(ent->tipo), ent->endereco);
+            ent = ent->proximo;
+        }
+    }
+    printf("==========================\n");
+}
+
+
 
 /*
 // Insere novo símbolo na tabela atual, retorna ponteiro para ele ou NULL se erro
@@ -193,15 +207,3 @@ EntradaTDS *TDS_encontrarSimbolo(const char *lexema) {
 }*/
 
 // Imprime a tabela de símbolos na saída padrão
-void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
-    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
-    for (int i = 0; i < MAX_ENTRADAS; i++) {
-        EntradaTDS *ent = tds->tabela[i];
-        while (ent) {
-            printf("Nome: %-15s Tipo: %-7s Endereço: %d\n",
-                   ent->lexema, tipo_para_string(ent->tipo), ent->endereco);
-            ent = ent->proximo;
-        }
-    }
-    printf("==========================\n");
-}
