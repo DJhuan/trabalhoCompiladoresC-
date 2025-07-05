@@ -1,8 +1,16 @@
 int isadora;
 
-int jhuan (int isa float isa){
+int jhuan (void){
     int i;
+    float a;
+    int c;
+    int c;
 }
 
-int anaTriste
-int a = 1;
+int anaTriste;
+int a;
+
+struct carro {
+    int rodas;
+    float preco;
+} c1;

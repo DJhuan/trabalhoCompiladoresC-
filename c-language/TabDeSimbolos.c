@@ -34,7 +34,7 @@ const char *tipo_para_string(TipoDado tipo) {
 static int tamanho_tipo(TipoDado tipo) {
     switch (tipo) {
         case TIPO_INT: return 4;
-        case TIPO_FLOAT: return 4;
+        case TIPO_FLOAT: return 8;
         case TIPO_CHAR: return 1;
         case TIPO_STRUCT: return 0; 
         default: return 0;
@@ -54,7 +54,6 @@ TabDeSimbolos *new_TabDeSimbolos() {
 
     tds->anterior = tabela_atual; // Guarda tabela anterior para escopos
     tabela_atual = tds;            // Atualiza para nova tabela
-    endereco_atual = 0;            // Reinicia endereçamento
     return tds;
 }
 
@@ -116,25 +115,31 @@ EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo) {
     TabDeSimbolos* atual = TDS_topo();
     if (!atual) return NULL;
 
-    // Criação do novo símbolo
-    EntradaTDS *nova = malloc(sizeof(EntradaTDS));
-    nova->lexema = strdup(lexema);
-    nova->tipo = tipo;
-    nova->endereco = 0;
-
-    // Cálculo do endereço relativo
-    for (int i = 0; i < MAX_ENTRADAS; i++) {
-        EntradaTDS* aux = atual->tabela[i];
-        while (aux != NULL) {
-            nova->endereco += tamanho_tipo(aux->tipo);
-            aux = aux->proximo;
-        }
+    // Verifica se o símbolo já existe no escopo atual
+    if (TDS_buscarSimboloInterno(lexema)) {
+        fprintf(stderr, "Erro semântico: símbolo '%s' já declarado neste escopo\n", lexema);
+        return NULL;
     }
 
-    // Inserção na tabela (hash)
-    int hash = (int) lexema[0] % MAX_ENTRADAS;
+    // Criação do novo símbolo
+    EntradaTDS *nova = malloc(sizeof(EntradaTDS));
+    if (!nova) {
+        perror("Falha ao alocar entrada da tabela");
+        return NULL;
+    }
+
+    nova->lexema = strdup(lexema);
+    nova->tipo = tipo;
+    
+    // Endereço sequencial global
+    nova->endereco = endereco_atual;
+    endereco_atual += tamanho_tipo(tipo) > 0 ? tamanho_tipo(tipo) : 1;
+
+    // Inserção na tabela (hash por djb2)
+    int hash = get_hash(lexema);
     nova->proximo = atual->tabela[hash];
     atual->tabela[hash] = nova;
+
     return nova;
 }
 
@@ -154,6 +159,8 @@ EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
     }
     return NULL;
 }
+
+
 /*
 // Insere novo símbolo na tabela atual, retorna ponteiro para ele ou NULL se erro
 EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo) {
