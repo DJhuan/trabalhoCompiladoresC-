@@ -1,16 +1,17 @@
 #!/bin/bash
 
 # Verifica se todos os parâmetros foram passados
-if [ $# -lt 3 ]; then
-  echo "Uso: $0 <arquivo_do_yacc.y> <arquivo_do_lex.l> <arquivo_de_teste.txt>"
+if [ $# -lt 1 ]; then
+  echo "Uso: $0 <arquivo_de_teste.txt>"
   exit 1
 fi
 
 echo "--== SCRIPT FUNCIONANDO ==--"
 
-ARQ_YACC="$1"
-ARQ_LEX="$2"
-ARQ_TESTE="$3"
+ARQ_YACC="c-language.l"
+ARQ_LEX="c-language.y"
+ARQ_TESTE="$1"
+NOME_COMPILADOR="gcm"
 
 cd "c-language"
 
@@ -24,6 +25,8 @@ for arg in "$@"; do
     BISON_OPT="$BISON_OPT -Wcounterexamples"
   fi
 done
+
+
 
 echo "Compilando arquivo .y."
 bison $BISON_OPT -d -o parser.tab.c c-language.y
@@ -41,16 +44,18 @@ if [ ! -f "scanner.yy.c" ]; then
   exit 1
 fi
 
-echo "Compilando analisador sintático."
-gcc scanner.yy.c parser.tab.c TabDeSimbolos.c -o analise-sintatica -lfl
+echo "Compilando o $NOME_COMPILADOR."
+gcc scanner.yy.c parser.tab.c TabDeSimbolos.c -o $NOME_COMPILADOR -lfl
 
-if [ ! -f "analise-sintatica" ]; then
+if [ ! -f $NOME_COMPILADOR ]; then
   echo "Erro na compilação do analisador sintático!"
   exit 1
 fi
 
+echo "Limpando arquivos temporários."
+rm -f scanner.yy.c parser.tab.c parser.tab.h c-language.tab.h c-language.tab.c
+
 echo "Iniciando analisador sintático. Compilando o arquivo: $ARQ_TESTE"
-echo
-./analise-sintatica ../"$ARQ_TESTE"
+./"$NOME_COMPILADOR" ../"$ARQ_TESTE"
 
 echo "--== FIM DA EXECUÇÃO ==--"
