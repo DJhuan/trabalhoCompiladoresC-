@@ -38,6 +38,9 @@ TabDeSimbolos* new_TabDeSimbolos();
 void delete_TabDeSimbolos();
 EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo);
 EntradaTDS* TDS_encontrarSimbolo(const char* lexema);
-void TDS_imprimir(const TabDeSimbolos* tds);
-
+void TDS_imprimir(const TabDeSimbolos* tds,const char* tipoTab);
+// Pilha de escopos
+void TDS_empilhar(TabDeSimbolos *nova);
+void TDS_desempilhar();
+TabDeSimbolos* TDS_topo();
 #endif // SYMTABLE

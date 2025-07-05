@@ -88,7 +88,73 @@ static EntradaTDS *TDS_buscarSimboloInterno(const char *lexema) {
     }
     return NULL;
 }
+// Pilha de escopos (topo da pilha)
+static TabDeSimbolos* topo_pilha = NULL;
 
+// Empilha uma nova tabela de símbolos
+void TDS_empilhar(TabDeSimbolos *nova) {
+    nova->anterior = topo_pilha;
+    topo_pilha = nova;
+}
+
+// Remove o escopo atual
+void TDS_desempilhar() {
+    if (topo_pilha != NULL) {
+        TabDeSimbolos* temp = topo_pilha;
+        topo_pilha = topo_pilha->anterior;
+        delete_TabDeSimbolos(temp);
+    }
+}
+
+// Acessa o topo da pilha (escopo atual)
+TabDeSimbolos* TDS_topo() {
+    return topo_pilha;
+}
+
+// Ao inserir símbolo, use o topo
+EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo) {
+    TabDeSimbolos* atual = TDS_topo();
+    if (!atual) return NULL;
+
+    // Criação do novo símbolo
+    EntradaTDS *nova = malloc(sizeof(EntradaTDS));
+    nova->lexema = strdup(lexema);
+    nova->tipo = tipo;
+    nova->endereco = 0;
+
+    // Cálculo do endereço relativo
+    for (int i = 0; i < MAX_ENTRADAS; i++) {
+        EntradaTDS* aux = atual->tabela[i];
+        while (aux != NULL) {
+            nova->endereco += tamanho_tipo(aux->tipo);
+            aux = aux->proximo;
+        }
+    }
+
+    // Inserção na tabela (hash)
+    int hash = (int) lexema[0] % MAX_ENTRADAS;
+    nova->proximo = atual->tabela[hash];
+    atual->tabela[hash] = nova;
+    return nova;
+}
+
+// Busca percorre todos os escopos
+EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
+    TabDeSimbolos* atual = topo_pilha;
+    while (atual != NULL) {
+        int hash = (int) lexema[0] % MAX_ENTRADAS;
+        EntradaTDS* e = atual->tabela[hash];
+        while (e != NULL) {
+            if (strcmp(e->lexema, lexema) == 0) {
+                return e;
+            }
+            e = e->proximo;
+        }
+        atual = atual->anterior; // sobe para o escopo anterior
+    }
+    return NULL;
+}
+/*
 // Insere novo símbolo na tabela atual, retorna ponteiro para ele ou NULL se erro
 EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo) {
     if (TDS_buscarSimboloInterno(lexema)) {
@@ -117,11 +183,11 @@ EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo) {
 // Busca símbolo na tabela atual pelo lexema
 EntradaTDS *TDS_encontrarSimbolo(const char *lexema) {
     return TDS_buscarSimboloInterno(lexema);
-}
+}*/
 
 // Imprime a tabela de símbolos na saída padrão
-void TDS_imprimir(const TabDeSimbolos *tds) {
-    printf("=== Tabela de Símbolos ===\n");
+void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
+    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
     for (int i = 0; i < MAX_ENTRADAS; i++) {
         EntradaTDS *ent = tds->tabela[i];
         while (ent) {

@@ -24,6 +24,7 @@ void print_error(const char *msg); // Nossa função de erro;
 %union {
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
+    struct TabDeSimbolos* tds; // Novo campo!
 }
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
@@ -41,6 +42,7 @@ void print_error(const char *msg); // Nossa função de erro;
 
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
+%type <tds> composto_decl
 
 // Precedência 
 %left SOMA
@@ -127,12 +129,13 @@ param   :   tipo_especificador ID {
 
 // Corpo da função: declarações locais e comandos
 composto_decl : OCB {
-                    new_TabDeSimbolos();
-                } 
-                local_decl comando_lista CCB {
-                    delete_TabDeSimbolos();
+                    TabDeSimbolos *nova = new_TabDeSimbolos();
+                    TDS_empilhar(nova);
                 }
-                | OCB error CCB { print_error("Error inside function body."); yyerrok; }
+                local_decl comando_lista CCB {
+                    TDS_imprimir(TDS_topo(), "De Escopo"); // imprime antes de destruir
+                    TDS_desempilhar();       // sai do escopo
+                }
                 ;
 
 // Declarações locais
@@ -263,7 +266,9 @@ void print_error(const char *msg) {
 }
 
 int main(int argc, char **argv) {
-    TabDeSimbolos *tab = new_TabDeSimbolos("TabDeSimbolos");
+
+    TabDeSimbolos* global = new_TabDeSimbolos();
+    TDS_empilhar(global);
 
     if (argc < 2){
         printf("Please provide an input file.");
@@ -278,6 +283,8 @@ int main(int argc, char **argv) {
     yyin = arq_compilado;
     yyparse(); // Chamada para iniciar a análise sintática;
 
+    
+    TDS_imprimir(global, "Global");
     // Verifica se houve erros léxicos OU sintáticos
     if (errors_count > 0 || syntax_error_occurred) {
         printf(RED "*-------------------------------------------------*\n");
@@ -288,8 +295,6 @@ int main(int argc, char **argv) {
         printf("| !!! Syntatic analysis was successfully concluded !!! |\n");
         printf("*------------------------------------------------------*\n"RESET);
     }
-
-    TDS_imprimir(tab);
 
     fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
 

@@ -97,8 +97,9 @@ union YYSTYPE
 
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
+    struct TabDeSimbolos* tds; // Novo campo!
 
-#line 102 "c-language.tab.h"
+#line 103 "c-language.tab.h"
 
 };
 typedef union YYSTYPE YYSTYPE;
