@@ -58,13 +58,11 @@ programa    :   decl_lista
 // Declarações
 decl_lista   :  decl decl_lista
                 |decl
-                |error decl_lista { print_error("Error in declaration list."); yyerrok; }
                 ;
 
 // Declaração: variável ou função
 decl    :   var_decl
             |func_decl
-            |error SEMICOLON { print_error("Invalid declaration."); yyerrok; }
             ;
 
 // Declaração de variável: variável simples ou matriz
@@ -76,7 +74,15 @@ var_decl    :   tipo_especificador ID SEMICOLON {
                 |tipo_especificador ID dimen_matriz SEMICOLON {
                 printf("Inserindo id %s do tipo %d\n", $2, $1);
                     TDS_novoSimbolo($2, $1);
-                } 
+                }
+                |tipo_especificador ID OB error SEMICOLON {
+                    print_error("Array dimension missing.");
+                    yyerrok;
+                }
+                |tipo_especificador error SEMICOLON {
+                    print_error("Variable declaration invalid. An identifier is required.");
+                    yyerrok; // Reseta o estado de erro do parser
+                }
                 ;
 
 // Dimensão de matriz: unica ou múltipla
@@ -97,21 +103,27 @@ atributos_decl  :   var_decl
                     ;
 
 // Declaração de função: tipo, id, parâmetros e corpo
-func_decl   :   tipo_especificador ID OP params CP composto_decl{
+func_decl   :   tipo_especificador ID OP params CP composto_decl {
                     TDS_novoSimbolo($2, $1);
-                }   
+                }
+                | tipo_especificador ID OP error CP {
+                    print_error("Function parameters invalid.");
+                    yyerrok;
+                }
+                | error SEMICOLON {
+                    print_error("Function declaration invalid.");
+                    yyerrok;
+                }
                 ;
 
 // Função com ou sem parâmetros
 params  :   params_lista
             |VOID
-            | error {print_error("Parâmetro inválido."); yyerrok;}
             ;
 
 // Parâmetros
 params_lista    :   param
                     |param COMMA params_lista
-                    |param error COMMA params_lista { print_error("Invalid parameter. Skipping."); yyerrok; }
                     ;
 
 // Parâmetros simples ou vetoriais
@@ -123,8 +135,6 @@ param   :   tipo_especificador ID {
                 printf("Inserindo id %s do tipo %d\n", $2, $1);
                 TDS_novoSimbolo($2, $1);
             }
-           // |tipo_especificador error {print_error("Wrong parameter"); yyerrok;} 
-            |tipo_especificador ID error CB {print_error("Missing open bracket: '['"); yyerrok;} 
             ;
 
 // Corpo da função: declarações locais e comandos
@@ -151,7 +161,6 @@ comando_lista   :   comando comando_lista
 // Distingue if-else casado e não casado
 comando :   comando_casado
             |comando_singular
-            | error SEMICOLON { print_error("Invalid command."); yyerrok; }
             ;
 
 // Neste caso, TODO IF está associado com um ELSE;
@@ -159,17 +168,29 @@ comando_casado  :   expressao_decl
                     |composto_decl
                     |iteracao_decl
                     |retorno_decl
-                    |IF OP expressao CP comando_casado ELSE comando_casado
+                    |cabecalho_if comando_casado ELSE comando_casado
                     ;
 
 // Neste caso, pode haver um IF sem ELSE
-comando_singular    :   IF OP expressao CP comando
-                        |IF OP expressao CP comando_casado ELSE comando_singular
+comando_singular    :   cabecalho_if comando
+                        |cabecalho_if comando_casado ELSE comando_singular
                         ;
+
+// Cabeçalho para IF (separá-lo evita conflitos shift/reduce)
+cabecalho_if :   IF OP expressao CP 
+                    |IF OP error CP {
+                        print_error("Invalid if condition.");
+                        yyerrok;
+                    }
+                    ;
 
 // Comando de expressão
 expressao_decl  :   expressao SEMICOLON
                     |SEMICOLON
+                    | error SEMICOLON {
+                        print_error("Invalid expression statement.");
+                        yyerrok; // Reseta o estado de erro do parser
+                    }
                     ;
 
 // Estrutura WHILE
@@ -179,12 +200,15 @@ iteracao_decl   :   WHILE OP expressao CP comando_casado
 // Retorno de função: simples ou com valor
 retorno_decl    :   RETURN SEMICOLON 
                     | RETURN expressao SEMICOLON
+                    | RETURN error SEMICOLON {
+                        print_error("Invalid return statement.");
+                        yyerrok; // Reseta o estado de erro do parser
+                    }
                     ;
 
 // Expressão: atribuição ou expressão simples
 expressao   :   var EQ expressao 
                 |expressao_simples
-                | error { print_error("Invalid expression."); yyerrok; }
                 ;
 // Variável
 var    :    ID  {
@@ -202,6 +226,10 @@ var    :    ID  {
 // Acesso aos elementos do vetor/matriz
 var_aux :   OB expressao CB
             |OB expressao CB var_aux
+            |error SEMICOLON {
+                print_error("Invalid array access.");
+                yyerrok; // Reseta o estado de erro do parser
+            }
             ;
 
 // Expressão simples: aritmética ou relacional
@@ -237,16 +265,27 @@ fator   :   OP expressao CP
 
 // Chamada da função 
 ativacao    :   ID OP args CP
+                | ID OP error CP {
+                    print_error("Function call with invalid arguments.");
+                    yyerrok;
+                }
+                | ID error CP {
+                    print_error("Missing '('.");
+                    yyerrok;
+                }
                 ;
 
 args    :   arg_list
             | /* vazio */
+            | error SEMICOLON {
+                print_error("Invalid arguments in function call.");
+                yyerrok;
+            }
             ;
 
 // Lista de argumentos passados para a função
 arg_list   :    expressao
                 |expressao COMMA arg_list
-                |error COMMA arg_list { print_error("Invalid argument. Skipping."); yyerrok; }
                 ;
 %%
 
@@ -287,12 +326,12 @@ int main(int argc, char **argv) {
     TDS_imprimir(global, "Global");
     // Verifica se houve erros léxicos OU sintáticos
     if (errors_count > 0 || syntax_error_occurred) {
-        printf(RED "*-------------------------------------------------*\n");
-        printf("| !!! Syntatic analysis concluded with ERRORS !!! |\n");
-        printf(RED "*-------------------------------------------------*\n" RESET);
+        printf(RED "*--------------------------------------------------*\n");
+        printf("| !!!            Compilation failed            !!! |\n");
+        printf(RED "*--------------------------------------------------*\n" RESET);
     } else {
         printf(GREEN"*------------------------------------------------------*\n");
-        printf("| !!! Syntatic analysis was successfully concluded !!! |\n");
+        printf("| !!!      Compilation successfully concluded      !!! |\n");
         printf("*------------------------------------------------------*\n"RESET);
     }
 
