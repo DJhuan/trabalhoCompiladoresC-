@@ -8,8 +8,23 @@ static int endereco_atual = 0;
 static TabDeSimbolos *tabela_atual = NULL;
 char* tipoStructVar = "";
 
+// Garda o número variáveis temporárias criadas;
+static int cont_temporarias = 0;
+
 // Nome do arquivo de saída (pode alterar se quiser)
-static const char TDS_saida_filename[] = "TabelasDeSimbolos.txt";
+FILE *c3eFileStream = NULL;
+const char *TDS_saida_filename = "c3e_output";
+
+// Retorna uma string com nome de temporaria;
+char* new_nomeTemporaria() {
+    char *t_name = malloc(20);
+    if (!t_name) {
+        perror("Falha ao alocar nome de temporária");
+        return NULL;
+    }
+    snprintf(t_name, 20, "t%d", cont_temporarias++);
+    return t_name;
+}
 
 // Função hash djb2 para mapear lexemas em índices
 static unsigned int get_hash(const char *key) {
@@ -102,7 +117,7 @@ void TDS_desempilhar() {
     if (topo_pilha != NULL) {
         TabDeSimbolos* temp = topo_pilha;
         topo_pilha = topo_pilha->anterior;
-        delete_TabDeSimbolos(temp);
+        delete_TabDeSimbolos();
     }
 }
 
@@ -172,20 +187,71 @@ EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
     return NULL;
 }
 
+void TDS_imprimirEntrada(const EntradaTDS *ent) {
+    if (!ent) return;
+    printf("\x1b[33mNome: %-15s Tipo: %-7s Endereço: %d\n\x1b[0m",
+           ent->lexema, tipo_para_string(ent->tipo, (EntradaTDS *)ent), ent->endereco);
+}
+
 void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
-    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
+    printf("\x1b[33m=== Tabela de Símbolos (%s) ===\n", tipoTab);
     for (int i = 0; i < MAX_ENTRADAS; i++) {
         EntradaTDS *ent = tds->tabela[i];
         while (ent) {
-            printf("Nome: %-15s Tipo: %-7s Endereço: %d\n",
-                   ent->lexema, tipo_para_string(ent->tipo, ent), ent->endereco);
+            TDS_imprimirEntrada(ent);
             ent = ent->proximo;
         }
     }
-    printf("==========================\n");
+    printf("==========================\n\x1b[0m");
 }
 
+EntradaTDS* max_type(EntradaTDS *a, TipoDado t, TipoDado w){
+    // Tipos de mesmo tamanho;
+    if (t == w) return a;
+    else if (t != TIPO_STRUCT && w != TIPO_STRUCT) {
+        
+        // Tipos diferentes de struct;
+        // Int para float;
+        if (t == TIPO_INT && w == TIPO_FLOAT){
+            EntradaTDS *temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT);
+            #warning "Gerar código de três endereços".
+            return temp;
+        }
 
+    }
+
+    return NULL;
+}
+
+void c3e_init(const char* filename) {
+    if (filename) {
+        TDS_saida_filename = filename;
+    }
+
+    c3eFileStream = fopen(TDS_saida_filename, "w");
+    if (!c3eFileStream) {
+        perror("Erro ao abrir arquivo de saída para código 3 endereços.");
+        return;
+    }
+}
+
+void c3e_gen(const char* s) {
+    if (!c3eFileStream) {
+        fprintf(stderr, "Erro: arquivo de saída não inicializado.\n");
+        return;
+    }
+
+    if (s == NULL) return; // Sem string, sem impressão;
+
+    fprintf(c3eFileStream, "%s\n", s);
+}
+
+void c3e_close() {
+    if (c3eFileStream) {
+        fclose(c3eFileStream);
+        c3eFileStream = NULL;
+    }
+}
 
 /*
 // Insere novo símbolo na tabela atual, retorna ponteiro para ele ou NULL se erro

@@ -35,7 +35,6 @@ struct TabDeSimbolos
     TabDeSimbolos *anterior; // Tabela anterior (para escopos aninhados)
 };
 
-// Protótipos das funções públicas:
 const char* tipo_para_string(TipoDado tipo, EntradaTDS *ent);
 void tipoStruct(char* nome, TipoDado tipo);
 TabDeSimbolos* new_TabDeSimbolos();
@@ -47,4 +46,11 @@ void TDS_imprimir(const TabDeSimbolos* tds,const char* tipoTab);
 void TDS_empilhar(TabDeSimbolos *nova);
 void TDS_desempilhar();
 TabDeSimbolos* TDS_topo();
+EntradaTDS* max_type(EntradaTDS *a, TipoDado t, TipoDado w);
+char* new_nomeTemporaria();
+void TDS_imprimirEntrada(const EntradaTDS *ent);
+
+void c3e_init(const char* filename);
+void c3e_gen(const char* codigo);
+void c3e_close();
 #endif // SYMTABLE

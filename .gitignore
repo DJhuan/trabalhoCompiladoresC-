@@ -6,5 +6,7 @@
 /c-language/analise-sintatica
 /c-language/c-language.output
 /c-language/gcm
+/c-language/*.txt
+/c-language/*.cmc3e
 /sandbox
 .vscode

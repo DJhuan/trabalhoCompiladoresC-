@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Verifica se todos os parâmetros foram passados
-if [ $# -lt 1 ]; then
-  echo "Uso: $0 <arquivo_de_teste.txt>"
+if [ $# -lt 2 ]; then
+  echo "Uso: $0 <arquivo_de_teste.txt> <saida_3_enderecos.cmc3e>"
   exit 1
 fi
 
@@ -56,6 +56,6 @@ echo "Limpando arquivos temporários."
 rm -f scanner.yy.c parser.tab.c parser.tab.h c-language.tab.h c-language.tab.c
 
 echo "Iniciando analisador sintático. Compilando o arquivo: $ARQ_TESTE"
-./"$NOME_COMPILADOR" ../"$ARQ_TESTE"
+./"$NOME_COMPILADOR" ../"$ARQ_TESTE" "$2"
 
 echo "--== FIM DA EXECUÇÃO ==--"

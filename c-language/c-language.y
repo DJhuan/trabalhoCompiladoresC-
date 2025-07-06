@@ -25,6 +25,7 @@ void print_error(const char *msg); // Nossa função de erro;
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
     struct TabDeSimbolos* tds; // Novo campo!
+    struct EntradaTDS* entrada;
 }
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
@@ -43,6 +44,7 @@ void print_error(const char *msg); // Nossa função de erro;
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
+%type <entrada> fator var ativacao expressao
 
 // Precedência 
 %left SOMA
@@ -221,8 +223,8 @@ retorno_decl    :   RETURN SEMICOLON
                     ;
 
 // Expressão: atribuição ou expressão simples
-expressao   :   var EQ expressao 
-                |expressao_simples
+expressao   :   var EQ expressao { $$ = $3;}
+                |expressao_simples { $$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT); }
                 ;
 // Variável
 var    :    ID  {
@@ -270,15 +272,15 @@ termo_aux   :   MULT fator
                 ;
 
 // Operandos básicos
-fator   :   OP expressao CP
-            |var
-            |ativacao
-            |NUM_FLOAT
-            |NUM_INT
+fator   :   OP expressao CP {$$ = $2; TDS_imprimirEntrada($$);}
+            |var            {$$ = $1; TDS_imprimirEntrada($$);}
+            |ativacao       {$$ = $1; TDS_imprimirEntrada($$);}
+            |NUM_FLOAT      {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT);}
+            |NUM_INT        {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);}
             ;
 
 // Chamada da função 
-ativacao    :   ID OP args CP
+ativacao    :   ID OP args CP {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TDS_encontrarSimbolo($1)->tipo);}
                 | ID OP error CP {
                     print_error("Function call with invalid arguments.");
                     yyerrok;
@@ -333,6 +335,9 @@ int main(int argc, char **argv) {
         return -2;
     }
 
+    // Inicializa o arquivo de saída para código intermediário;
+    c3e_init(argv[2]);
+    
     yyin = arq_compilado;
     yyparse(); // Chamada para iniciar a análise sintática;
 
@@ -349,8 +354,8 @@ int main(int argc, char **argv) {
         printf("*------------------------------------------------------*\n"RESET);
     }
 
+    c3e_close(); // Fecha o arquivo de saída para código intermediário;
     fclose(arq_compilado); // Fecha o arquivo utilizado na análise;
-
 
     return 0;
 }
