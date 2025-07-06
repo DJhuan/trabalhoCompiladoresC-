@@ -6,6 +6,7 @@
 // Variáveis globais para controle da tabela e endereços
 static int endereco_atual = 0;
 static TabDeSimbolos *tabela_atual = NULL;
+char* tipoStructVar = "";
 
 // Nome do arquivo de saída (pode alterar se quiser)
 static const char TDS_saida_filename[] = "TabelasDeSimbolos.txt";
@@ -20,12 +21,12 @@ static unsigned int get_hash(const char *key) {
 }
 
 // Converte TipoDado para string legível
-const char *tipo_para_string(TipoDado tipo) {
+const char *tipo_para_string(TipoDado tipo, EntradaTDS *ent) {
     switch (tipo) {
         case TIPO_INT: return "INT";
         case TIPO_FLOAT: return "FLOAT";
         case TIPO_CHAR: return "CHAR";
-        case TIPO_STRUCT: return "STRUCT";
+        case TIPO_STRUCT_DEF: return ent->nomeStruct;
         default: return "???";
     }
 }
@@ -36,7 +37,7 @@ static int tamanho_tipo(TipoDado tipo) {
         case TIPO_INT: return 4;
         case TIPO_FLOAT: return 8;
         case TIPO_CHAR: return 1;
-        case TIPO_STRUCT: return 0; 
+        case TIPO_STRUCT: return 1; 
         default: return 0;
     }
 }
@@ -105,6 +106,12 @@ void TDS_desempilhar() {
     }
 }
 
+void tipoStruct(char* nome, TipoDado tipo) {
+    if(tipo == TIPO_STRUCT_DEF) {
+        tipoStructVar = nome;
+    }
+}
+
 // Acessa o topo da pilha (escopo atual)
 TabDeSimbolos* TDS_topo() {
     return topo_pilha;
@@ -130,7 +137,12 @@ EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo) {
 
     nova->lexema = strdup(lexema);
     nova->tipo = tipo;
-    
+
+    if(strcmp(tipoStructVar, "") != 0) {
+        nova->nomeStruct = strdup(tipoStructVar);
+        tipoStructVar = "";
+    }
+
     // Endereço sequencial global
     nova->endereco = endereco_atual;
     endereco_atual += tamanho_tipo(tipo) > 0 ? tamanho_tipo(tipo) : 1;
@@ -159,6 +171,20 @@ EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
     }
     return NULL;
 }
+
+void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
+    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
+    for (int i = 0; i < MAX_ENTRADAS; i++) {
+        EntradaTDS *ent = tds->tabela[i];
+        while (ent) {
+            printf("Nome: %-15s Tipo: %-7s Endereço: %d\n",
+                   ent->lexema, tipo_para_string(ent->tipo, ent), ent->endereco);
+            ent = ent->proximo;
+        }
+    }
+    printf("==========================\n");
+}
+
 
 
 /*
@@ -193,15 +219,3 @@ EntradaTDS *TDS_encontrarSimbolo(const char *lexema) {
 }*/
 
 // Imprime a tabela de símbolos na saída padrão
-void TDS_imprimir(const TabDeSimbolos *tds, const char* tipoTab) {
-    printf("=== Tabela de Símbolos (%s) ===\n", tipoTab);
-    for (int i = 0; i < MAX_ENTRADAS; i++) {
-        EntradaTDS *ent = tds->tabela[i];
-        while (ent) {
-            printf("Nome: %-15s Tipo: %-7s Endereço: %d\n",
-                   ent->lexema, tipo_para_string(ent->tipo), ent->endereco);
-            ent = ent->proximo;
-        }
-    }
-    printf("==========================\n");
-}

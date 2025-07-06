@@ -95,8 +95,22 @@ tipo_especificador: INT    { $$ = TIPO_INT; }
                     |FLOAT  { $$ = TIPO_FLOAT; }
                     |CHAR   { $$ = TIPO_CHAR; }
                     |VOID   { $$ = TIPO_VOID; }
-                    |STRUCT ID OCB atributos_decl CCB { $$ = STRUCT; }
+                    |STRUCT ID OCB {
+                        // Cria nova tabela para campos da struct e empilha
+                        
+                        TabDeSimbolos *escopo_struct = new_TabDeSimbolos();
+                        TDS_empilhar(escopo_struct);
+                    }
+                    atributos_decl CCB {
+                        // Após processar campos, imprime e desempilha
+                        TDS_imprimir(TDS_topo(), "Campos da Struct");
+                        TDS_desempilhar();
+
+                        tipoStruct($2, TIPO_STRUCT_DEF);
+                        $$ = TIPO_STRUCT_DEF;
+                    }
                     ;
+
 // Atributos de struct
 atributos_decl  :   var_decl
                     |var_decl atributos_decl
