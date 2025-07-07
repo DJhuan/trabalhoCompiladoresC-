@@ -174,7 +174,7 @@ EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo) {
 EntradaTDS* TDS_encontrarSimbolo(const char* lexema) {
     TabDeSimbolos* atual = topo_pilha;
     while (atual != NULL) {
-        int hash = (int) lexema[0] % MAX_ENTRADAS;
+        int hash = get_hash(lexema);
         EntradaTDS* e = atual->tabela[hash];
         while (e != NULL) {
             if (strcmp(e->lexema, lexema) == 0) {

@@ -25,7 +25,11 @@ void print_error(const char *msg); // Nossa função de erro;
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
     struct TabDeSimbolos* tds; // Novo campo!
-    struct EntradaTDS* entrada;
+    struct entrada{
+        EntradaTDS* etds;
+        TipoDado tipo;
+        char c;
+    } entrada;
 }
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
@@ -44,8 +48,7 @@ void print_error(const char *msg); // Nossa função de erro;
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
-%type <entrada> fator var ativacao expressao
-
+%type <entrada> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
 // Precedência 
 %left SOMA
 %left MULT
@@ -223,17 +226,20 @@ retorno_decl    :   RETURN SEMICOLON
                     ;
 
 // Expressão: atribuição ou expressão simples
-expressao   :   var EQ expressao { $$ = $3;}
-                |expressao_simples { $$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT); }
+expressao   :   var EQ expressao { printf("OIIIIIII!!!!!! %s\n");}
+                |expressao_simples
                 ;
 // Variável
 var    :    ID  {
-                if (TDS_encontrarSimbolo($1) == NULL) {
+                EntradaTDS* entrada = TDS_encontrarSimbolo($1);
+                if (entrada == NULL) {
                     print_error("Variável usada mas não declarada.");
                 }
+                $$.c = 'v';
             }
             |ID var_aux {
-                if (TDS_encontrarSimbolo($1) == NULL) {
+                EntradaTDS* entrada = TDS_encontrarSimbolo($1);
+                if (entrada == NULL) {
                     print_error("Variável usada mas não declarada.");
                 }
             }
@@ -258,29 +264,29 @@ expressao_soma  :   termo
                     ;
 
 // Operações de soma e subtração
-expressao_somatorio :   SOMA termo 
+expressao_somatorio :   SOMA termo
                         | SOMA termo expressao_somatorio
                         ;
 
-termo   :   fator 
+termo   :   fator
             | fator termo_aux
             ;
 
 // Operações de multiplicação e divisão
-termo_aux   :   MULT fator 
+termo_aux   :   MULT fator
                 |MULT fator termo_aux
                 ;
 
 // Operandos básicos
-fator   :   OP expressao CP {$$ = $2; TDS_imprimirEntrada($$);}
-            |var            {$$ = $1; TDS_imprimirEntrada($$);}
-            |ativacao       {$$ = $1; TDS_imprimirEntrada($$);}
-            |NUM_FLOAT      {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT);}
-            |NUM_INT        {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);}
+fator   :   OP expressao CP 
+            |var            
+            |ativacao       
+            |NUM_FLOAT      {$$.etds = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT); $$.tipo = TIPO_FLOAT;}
+            |NUM_INT        {$$.etds = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT); $$.tipo = TIPO_INT;}
             ;
 
 // Chamada da função 
-ativacao    :   ID OP args CP {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TDS_encontrarSimbolo($1)->tipo);}
+ativacao    :   ID OP args CP {}
                 | ID OP error CP {
                     print_error("Function call with invalid arguments.");
                     yyerrok;
