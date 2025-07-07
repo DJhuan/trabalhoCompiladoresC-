@@ -36,10 +36,10 @@ other                   .
 "float"     { column_number += yyleng; return FLOAT; }
 "char"      { column_number += yyleng; return CHAR; }
 
-"+"         { column_number += yyleng; return SOMA; }
-"*"         { column_number += yyleng; return MULT; }
-"-"         { column_number += yyleng; return SOMA; }
-"/"         { column_number += yyleng; return MULT; }
+"+"         { column_number += yyleng; yylval.strval = strdup(yytext); return SOMA; }
+"*"         { column_number += yyleng; yylval.strval = strdup(yytext); return MULT; }
+"-"         { column_number += yyleng; yylval.strval = strdup(yytext); return SOMA; }
+"/"         { column_number += yyleng; yylval.strval = strdup(yytext); return MULT; }
 
 "="         { column_number += yyleng; return EQ; }
 "=="        { column_number += yyleng; return RELOP; }

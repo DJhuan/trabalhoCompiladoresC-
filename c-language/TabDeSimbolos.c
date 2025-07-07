@@ -6,7 +6,6 @@
 
 // Variáveis globais para controle da tabela e endereços
 static int endereco_atual = 0;
-static TabDeSimbolos *tabela_atual = NULL;
 char *tipoStructVar = "";
 
 // Garda o número variáveis temporárias criadas;
@@ -88,20 +87,19 @@ TabDeSimbolos *new_TabDeSimbolos()
     for (int i = 0; i < MAX_ENTRADAS; i++)
         tds->tabela[i] = NULL;
 
-    tds->anterior = tabela_atual; // Guarda tabela anterior para escopos
-    tabela_atual = tds;           // Atualiza para nova tabela
+    tds->anterior = NULL; // Será definido ao empilhar
     return tds;
 }
 
-// Apaga a tabela atual e libera memória
-void delete_TabDeSimbolos()
+// Apaga uma tabela de símbolos e libera memória
+void delete_TabDeSimbolos(TabDeSimbolos *tds)
 {
-    if (!tabela_atual)
+    if (!tds)
         return;
 
     for (int i = 0; i < MAX_ENTRADAS; i++)
     {
-        EntradaTDS *ent = tabela_atual->tabela[i];
+        EntradaTDS *ent = tds->tabela[i];
         while (ent)
         {
             EntradaTDS *temp = ent;
@@ -111,21 +109,23 @@ void delete_TabDeSimbolos()
         }
     }
 
-    TabDeSimbolos *temp = tabela_atual;
-    tabela_atual = tabela_atual->anterior;
-    free(temp);
+    free(tds);
 }
 
 // Função interna para buscar símbolo na tabela atual
 static EntradaTDS *TDS_buscarSimboloInterno(const char *lexema)
 {
+    TabDeSimbolos *atual = TDS_topo();
+    if (!atual)
+        return NULL;
+
     unsigned int i = get_hash(lexema);
-    EntradaTDS *atual = tabela_atual->tabela[i];
-    while (atual)
+    EntradaTDS *entrada = atual->tabela[i];
+    while (entrada)
     {
-        if (strcmp(atual->lexema, lexema) == 0)
-            return atual;
-        atual = atual->proximo;
+        if (strcmp(entrada->lexema, lexema) == 0)
+            return entrada;
+        entrada = entrada->proximo;
     }
     return NULL;
 }
@@ -146,7 +146,7 @@ void TDS_desempilhar()
     {
         TabDeSimbolos *temp = topo_pilha;
         topo_pilha = topo_pilha->anterior;
-        delete_TabDeSimbolos();
+        delete_TabDeSimbolos(temp);
     }
 }
 

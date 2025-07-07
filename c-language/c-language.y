@@ -40,7 +40,7 @@
 %token INT FLOAT CHAR VOID STRUCT
 %token IF ELSE WHILE RETURN
 
-%token MULT
+%token <strval> MULT
 %token EQ
 %token RELOP
 %token SEMICOLON COMMA
@@ -53,7 +53,7 @@
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
-%type <etds> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
+%type <etds> expressao var expressao_simples expressao_soma termo fator ativacao
 %type <constINT> dimen_matriz
 // Precedência 
 %left SOMA
@@ -133,9 +133,10 @@ atributos_decl          :   var_decl
                             ;
 
 // Declaração de função: tipo, id, parâmetros e corpo
-func_decl               :   tipo_especificador ID OP params CP composto_decl {
+func_decl               :   tipo_especificador ID OP {
+                                // Insere o nome da função no escopo global
                                 TDS_novoSimbolo($2, $1, 1);
-                            }
+                            } params CP composto_decl
                             |tipo_especificador ID OP error CP {
                                 print_error("Function parameters invalid.");
                                 yyerrok;
@@ -168,11 +169,14 @@ param                   :   tipo_especificador ID {
                             ;
 
 // Corpo da função: declarações locais e comandos
-composto_decl           :   OCB local_decl comando_lista CCB {
+composto_decl           :   OCB {
+                                // Cria novo escopo antes de processar declarações locais
                                 TabDeSimbolos *nova = new_TabDeSimbolos();
                                 TDS_empilhar(nova);
-                                TDS_imprimir(TDS_topo(), "De Escopo"); // imprime antes de destruir
-                                TDS_desempilhar();       // sai do escopo
+                            } local_decl comando_lista CCB {
+                                // Imprime e remove o escopo local após processar
+                                TDS_imprimir(TDS_topo(), "De Escopo");
+                                TDS_desempilhar();
                             }
                             ;
 
@@ -236,7 +240,7 @@ retorno_decl            :   RETURN SEMICOLON
 
 // Expressão: atribuição ou expressão simples
 expressao               :   var EQ expressao {
-                                $$ = $3;
+                                $$ = $1;
                                 sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); c3e_gen(buffer);
                             }
                             |expressao_simples {$$ = $1;}
@@ -245,7 +249,7 @@ expressao               :   var EQ expressao {
 // Variável
 var                     :   ID {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
-                                if (entrada == NULL) {OB 
+                                if (entrada == NULL) { 
                                     print_error("Variável usada mas não declarada.");
                                 }
                                 $$ = entrada;
@@ -273,39 +277,30 @@ expressao_simples       :   expressao_soma RELOP expressao_soma
                             |expressao_soma                     {$$ = $1;}
                             ;
 
-expressao_soma          :   termo                               { $$ = $1; }
-                            |termo expressao_somatorio          { $$ = $2; }
-                            ;
-
-expressao_somatorio     :   SOMA termo {
+expressao_soma          :   expressao_soma SOMA termo {
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
-                                if (strcmp($1, "+") == 0) {
-                                    sprintf(buffer, "%s = %s + %s", $<etds>-2->lexema, temp->lexema, $2->lexema); // <- $-2 é o termo anterior!
+                                if (strcmp($2, "+") == 0) {
+                                    sprintf(buffer, "%s = %s + %s", temp->lexema, $1->lexema, $3->lexema);
                                 } else {
-                                    sprintf(buffer, "%s = %s - %s", $<etds>-2->lexema, temp->lexema, $2->lexema);
+                                    sprintf(buffer, "%s = %s - %s", temp->lexema, $1->lexema, $3->lexema);
                                 }
                                 c3e_gen(buffer);
                                 $$ = temp;
                             }
-                            |SOMA termo expressao_somatorio {
+                            |termo                               { $$ = $1; }
+                            ;
+
+termo                   :   termo MULT fator {
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
-                                if (strcmp($1, "+") == 0) {
-                                    sprintf(buffer, "%s = %s + %s", $<etds>-3->lexema, temp->lexema, $2->lexema); // <- cuidado com a pilha de valores
+                                if (strcmp($2, "*") == 0) {
+                                    sprintf(buffer, "%s = %s * %s", temp->lexema, $1->lexema, $3->lexema);
                                 } else {
-                                    sprintf(buffer, "%s = %s - %s", $<etds>-3->lexema, temp->lexema, $2->lexema);
+                                    sprintf(buffer, "%s = %s / %s", temp->lexema, $1->lexema, $3->lexema);
                                 }
                                 c3e_gen(buffer);
                                 $$ = temp;
                             }
-                            ;
-
-termo                   :   fator               {$$ = $1;}
-                            |fator termo_aux
-                            ;
-
-// Operações de multiplicação e divisão
-termo_aux               :   MULT fator
-                            |MULT fator termo_aux
+                            |fator              {$$ = $1;}
                             ;
 
 // Operandos básicos
@@ -374,6 +369,7 @@ int main(int argc, char **argv) {
 
     // Inicializa o arquivo de saída para código intermediário;
     c3e_init(argv[2]);
+
     
     yyin = arq_compilado;
     yyparse(); // Chamada para iniciar a análise sintática;
