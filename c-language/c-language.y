@@ -19,17 +19,18 @@ extern FILE *yyin; // Indica que a entrada do analisador léxico é um arquivo;
 int syntax_error_occurred = 0; // Contador de erro sintático;
 void yyerror(const char *s); // Definição da função de erro (somente para o Bison não reclamar);
 void print_error(const char *msg); // Nossa função de erro;
+char uAAA; // Variável global para testes;
 %}
 
 %union {
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
     struct TabDeSimbolos* tds; // Novo campo!
-    struct entrada{
+    struct Y{
         EntradaTDS* etds;
         TipoDado tipo;
         char c;
-    } entrada;
+    } Y;
 }
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
@@ -48,7 +49,7 @@ void print_error(const char *msg); // Nossa função de erro;
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
-%type <entrada> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
+%type <Y> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
 // Precedência 
 %left SOMA
 %left MULT
@@ -226,8 +227,12 @@ retorno_decl    :   RETURN SEMICOLON
                     ;
 
 // Expressão: atribuição ou expressão simples
-expressao   :   var EQ expressao { printf("OIIIIIII!!!!!! %s\n");}
-                |expressao_simples
+expressao   :   var EQ expressao {
+                    EntradaTDS *e = max_type($1.etds, $1.etds->tipo, $3.etds->tipo);
+                    $$.etds = e;
+                    $$.tipo = e->tipo;
+                }
+                |expressao_simples {$$.etds = $1.etds; $$.tipo = $1.tipo;}
                 ;
 // Variável
 var    :    ID  {
@@ -235,7 +240,7 @@ var    :    ID  {
                 if (entrada == NULL) {
                     print_error("Variável usada mas não declarada.");
                 }
-                $$.c = 'v';
+                $$.etds = entrada;
             }
             |ID var_aux {
                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
@@ -256,10 +261,10 @@ var_aux :   OB expressao CB
 
 // Expressão simples: aritmética ou relacional
 expressao_simples   :   expressao_soma RELOP expressao_soma 
-                        |expressao_soma
+                        |expressao_soma {$$.etds = $1.etds; $$.tipo = $1.tipo;}
                         ;
 
-expressao_soma  :   termo
+expressao_soma  :   termo {$$.etds = $1.etds; $$.tipo = $1.tipo;}
                     |termo expressao_somatorio
                     ;
 
@@ -268,7 +273,7 @@ expressao_somatorio :   SOMA termo
                         | SOMA termo expressao_somatorio
                         ;
 
-termo   :   fator
+termo   :   fator {$$.etds = $1.etds; $$.tipo = $1.tipo;}
             | fator termo_aux
             ;
 
