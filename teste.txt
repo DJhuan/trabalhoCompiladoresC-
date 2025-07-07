@@ -1,18 +1,7 @@
-int isadora;
+int i;
 
-int jhuan (void){
-    int i;
-    float a;
-    int c;
-    int c;
+int fnc(void) {
+    i = 9;
+
+    i = 9 + 9;
 }
-
-int anaTriste;
-int a;
-
-struct carro {
-    int rodas;
-    float preco;
-} c1;
-
-char b;

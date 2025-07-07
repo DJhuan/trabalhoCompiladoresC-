@@ -17,6 +17,7 @@ extern int yyparse(); // Função principal para iniciar a análise léxica;
 extern FILE *yyin; // Indica que a entrada do analisador léxico é um arquivo;
 
 static char buffer[100];
+EntradaTDS* acumulador = NULL;
 
 // Informações usadas na análise sintática:
 int syntax_error_occurred = 0; // Contador de erro sintático;
@@ -29,13 +30,15 @@ void print_error(const char *msg); // Nossa função de erro;
     TipoDado tipo;   // para tipos
     struct TabDeSimbolos* tds; // Novo campo!
     struct EntradaTDS* etds;
+    char* strval;
 }
+
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
 %token <identifier> ID
 %token INT FLOAT CHAR VOID STRUCT
 %token IF ELSE WHILE RETURN
-%token SOMA 
+
 %token MULT
 %token EQ
 %token RELOP
@@ -43,6 +46,7 @@ void print_error(const char *msg); // Nossa função de erro;
 %token OCB CCB OP CP OB CB
 %token NUM_INT NUM_FLOAT
 %token CHARACTER
+%token <strval> SOMA
 
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
@@ -228,6 +232,7 @@ retorno_decl    :   RETURN SEMICOLON
 expressao   :   var EQ expressao {$$ = $3; sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); c3e_gen(buffer);}
                 |expressao_simples {$$ = $1;}
                 ;
+
 // Variável
 var    :    ID  {
                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
@@ -259,14 +264,32 @@ expressao_simples   :   expressao_soma RELOP expressao_soma
                         |expressao_soma {$$ = $1;}
                         ;
 
-expressao_soma  :   termo {$$ = $1;}
-                    |termo expressao_somatorio
-                    ;
+expressao_soma  : termo { $$ = $1; }
+                | termo expressao_somatorio { $$ = $2; }
+                ;
 
-// Operações de soma e subtração
-expressao_somatorio :   SOMA termo
-                        | SOMA termo expressao_somatorio
-                        ;
+expressao_somatorio
+    : SOMA termo {
+        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
+        if (strcmp($1, "+")) {
+            sprintf(buffer, "%s = %s + %s", $<etds>-2->lexema, temp->lexema, $2->lexema); // <- $-2 é o termo anterior!
+        } else {
+            sprintf(buffer, "%s = %s - %s", $<etds>-2->lexema, temp->lexema, $2->lexema);
+        }
+        c3e_gen(buffer);
+        $$ = temp;
+    }
+    | SOMA termo expressao_somatorio {
+        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
+        if (strcmp($1, "+")) {
+            sprintf(buffer, "%s = %s + %s", $<etds>-3->lexema, temp->lexema, $2->lexema); // <- cuidado com a pilha de valores
+        } else {
+            sprintf(buffer, "%s = %s - %s", $<etds>-3->lexema, temp->lexema, $2->lexema);
+        }
+        c3e_gen(buffer);
+        $$ = temp;
+    }
+    ;
 
 termo   :   fator {$$ = $1;}
             | fator termo_aux
