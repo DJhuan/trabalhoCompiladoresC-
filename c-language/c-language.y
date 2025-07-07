@@ -233,24 +233,36 @@ expressao_decl          :   expressao SEMICOLON
                             ;
 
 // Estrutura WHILE
-iteracao_decl           :   WHILE OP expressao CP comando_casado {
+iteracao_decl           :   WHILE OP expressao CP {
+                                // Cria novo escopo antes do corpo do while
+                                TabDeSimbolos *escopo_while = new_TabDeSimbolos();
+                                TDS_empilhar(escopo_while);
                                 char* lbl_inicio = new_label();
                                 char* lbl_fim = new_label();
+                                // Salva os labels em variáveis locais do bloco
                                 // Marca o início do laço
                                 sprintf(buffer, "%s:", lbl_inicio);
                                 c3e_gen(buffer);
-                                // Gera o teste condicional: se falso, vai para o fim
                                 sprintf(buffer, "ifFalse %s goto %s", $3->lexema, lbl_fim);
                                 c3e_gen(buffer);
-                                // Corpo do laço já foi gerado por comando_casado
-                                // Ao final, volta para o início
+                                // Passa os labels para o próximo bloco usando variáveis locais
+                                // Use um struct ou variáveis globais se necessário
+                                acumulador = malloc(sizeof(struct { char* inicio; char* fim; }));
+                                ((char**)acumulador)[0] = lbl_inicio;
+                                ((char**)acumulador)[1] = lbl_fim;
+                            } comando_casado {
+                                char* lbl_inicio = ((char**)acumulador)[0];
+                                char* lbl_fim = ((char**)acumulador)[1];
                                 sprintf(buffer, "goto %s", lbl_inicio);
                                 c3e_gen(buffer);
-                                // Marca o fim do laço
                                 sprintf(buffer, "%s:", lbl_fim);
                                 c3e_gen(buffer);
+                                TDS_imprimir(TDS_topo(), "Escopo While");
+                                TDS_desempilhar();
                                 free(lbl_inicio);
                                 free(lbl_fim);
+                                free(acumulador);
+                                acumulador = NULL;
                             }
                             ;
 

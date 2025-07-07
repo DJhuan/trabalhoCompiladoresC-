@@ -1,9 +1,9 @@
 i = t0
 t2 = i > t1
+L0:
+ifFalse t2 goto L1
 a = t3
 t6 = t4 + t5
 i = t6
-L0:
-ifFalse t2 goto L1
 goto L0
 L1:
