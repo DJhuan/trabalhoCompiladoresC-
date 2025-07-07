@@ -7,12 +7,12 @@
 
 // Define os tipos de dados possíveis
 typedef enum {
-    TIPO_FLOAT,
-    TIPO_INT,
-    TIPO_CHAR,
-    TIPO_STRUCT,
     TIPO_VOID,
-    TIPO_STRUCT_DEF 
+    TIPO_STRUCT_DEF,
+    TIPO_STRUCT,
+    TIPO_CHAR,
+    TIPO_INT,
+    TIPO_FLOAT
 } TipoDado;
 
 typedef struct EntradaTDS EntradaTDS;
@@ -46,7 +46,7 @@ void TDS_imprimir(const TabDeSimbolos* tds,const char* tipoTab);
 void TDS_empilhar(TabDeSimbolos *nova);
 void TDS_desempilhar();
 TabDeSimbolos* TDS_topo();
-EntradaTDS* max_type(EntradaTDS *a, TipoDado t, TipoDado w);
+TipoDado* max_type(TipoDado t, TipoDado w);
 char* new_nomeTemporaria();
 void TDS_imprimirEntrada(const EntradaTDS *ent);
 

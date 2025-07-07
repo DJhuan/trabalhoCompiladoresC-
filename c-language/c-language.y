@@ -5,6 +5,7 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "TabDeSimbolos.h"
 
 // Informações usadas pelo Bison que vem do Flex:
@@ -15,22 +16,19 @@ extern int yylex(); // Retorna os tokens para o parser;
 extern int yyparse(); // Função principal para iniciar a análise léxica;
 extern FILE *yyin; // Indica que a entrada do analisador léxico é um arquivo;
 
+static char buffer[100];
+
 // Informações usadas na análise sintática:
 int syntax_error_occurred = 0; // Contador de erro sintático;
 void yyerror(const char *s); // Definição da função de erro (somente para o Bison não reclamar);
 void print_error(const char *msg); // Nossa função de erro;
-char uAAA; // Variável global para testes;
 %}
 
 %union {
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
     struct TabDeSimbolos* tds; // Novo campo!
-    struct Y{
-        EntradaTDS* etds;
-        TipoDado tipo;
-        char c;
-    } Y;
+    struct EntradaTDS* etds;
 }
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
 // Tokens com tipo
@@ -49,7 +47,7 @@ char uAAA; // Variável global para testes;
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
-%type <Y> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
+%type <etds> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
 // Precedência 
 %left SOMA
 %left MULT
@@ -227,12 +225,8 @@ retorno_decl    :   RETURN SEMICOLON
                     ;
 
 // Expressão: atribuição ou expressão simples
-expressao   :   var EQ expressao {
-                    EntradaTDS *e = max_type($1.etds, $1.etds->tipo, $3.etds->tipo);
-                    $$.etds = e;
-                    $$.tipo = e->tipo;
-                }
-                |expressao_simples {$$.etds = $1.etds; $$.tipo = $1.tipo;}
+expressao   :   var EQ expressao {$$ = $3; sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); c3e_gen(buffer);}
+                |expressao_simples {$$ = $1;}
                 ;
 // Variável
 var    :    ID  {
@@ -240,13 +234,14 @@ var    :    ID  {
                 if (entrada == NULL) {
                     print_error("Variável usada mas não declarada.");
                 }
-                $$.etds = entrada;
+                $$ = entrada;
             }
             |ID var_aux {
                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
                 if (entrada == NULL) {
                     print_error("Variável usada mas não declarada.");
                 }
+                $$ = entrada;
             }
             ;
 
@@ -261,10 +256,10 @@ var_aux :   OB expressao CB
 
 // Expressão simples: aritmética ou relacional
 expressao_simples   :   expressao_soma RELOP expressao_soma 
-                        |expressao_soma {$$.etds = $1.etds; $$.tipo = $1.tipo;}
+                        |expressao_soma {$$ = $1;}
                         ;
 
-expressao_soma  :   termo {$$.etds = $1.etds; $$.tipo = $1.tipo;}
+expressao_soma  :   termo {$$ = $1;}
                     |termo expressao_somatorio
                     ;
 
@@ -273,7 +268,7 @@ expressao_somatorio :   SOMA termo
                         | SOMA termo expressao_somatorio
                         ;
 
-termo   :   fator {$$.etds = $1.etds; $$.tipo = $1.tipo;}
+termo   :   fator {$$ = $1;}
             | fator termo_aux
             ;
 
@@ -283,11 +278,11 @@ termo_aux   :   MULT fator
                 ;
 
 // Operandos básicos
-fator   :   OP expressao CP 
+fator   :   OP expressao CP {$$ = $2;}
             |var            
             |ativacao       
-            |NUM_FLOAT      {$$.etds = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT); $$.tipo = TIPO_FLOAT;}
-            |NUM_INT        {$$.etds = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT); $$.tipo = TIPO_INT;}
+            |NUM_FLOAT      {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT);}
+            |NUM_INT        {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);}
             ;
 
 // Chamada da função 
