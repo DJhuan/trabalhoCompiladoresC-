@@ -165,7 +165,7 @@ TabDeSimbolos *TDS_topo()
 }
 
 // Ao inserir símbolo, use o topo
-EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo)
+EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo, int multiplicador)
 {
     TabDeSimbolos *atual = TDS_topo();
     if (!atual)
@@ -197,7 +197,7 @@ EntradaTDS *TDS_novoSimbolo(const char *lexema, TipoDado tipo)
 
     // Endereço sequencial global
     nova->endereco = endereco_atual;
-    endereco_atual += tamanho_tipo(tipo) > 0 ? tamanho_tipo(tipo) : 1;
+    endereco_atual += tamanho_tipo(tipo) * multiplicador > 0 ? tamanho_tipo(tipo) * multiplicador : 1;
 
     // Inserção na tabela (hash por djb2)
     int hash = get_hash(lexema);

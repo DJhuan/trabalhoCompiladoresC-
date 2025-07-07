@@ -72,7 +72,7 @@ other                   .
 }
 
 {id}        { yylval.identifier = strdup(yytext); column_number += yyleng; return ID; }
-{num_int}   { column_number += yyleng; return NUM_INT; }
+{num_int}   { column_number += yyleng; yylval.constINT = atoi(yytext); return NUM_INT; }
 {num_float} { column_number += yyleng; return NUM_FLOAT; }
 {character} { column_number += yyleng; return CHARACTER; }
 

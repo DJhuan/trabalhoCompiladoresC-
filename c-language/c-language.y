@@ -31,6 +31,7 @@ void print_error(const char *msg); // Nossa função de erro;
     struct TabDeSimbolos* tds; // Novo campo!
     struct EntradaTDS* etds;
     char* strval;
+    long int constINT;
 }
 
 // Tokens de tipos de dados, palavras-chave, operadores e símbolos
@@ -44,14 +45,16 @@ void print_error(const char *msg); // Nossa função de erro;
 %token RELOP
 %token SEMICOLON COMMA
 %token OCB CCB OP CP OB CB
-%token NUM_INT NUM_FLOAT
+%token NUM_FLOAT
 %token CHARACTER
 %token <strval> SOMA
+%token <constINT> NUM_INT
 
 // Não-terminais com tipo
 %type <tipo> tipo_especificador
 %type <tds> composto_decl
 %type <etds> expressao var expressao_simples expressao_soma termo expressao_somatorio fator termo_aux ativacao
+%type <constINT> dimen_matriz
 // Precedência 
 %left SOMA
 %left MULT
@@ -77,11 +80,17 @@ decl    :   var_decl
 // trata o erro de identificador ausente
 var_decl    :   tipo_especificador ID SEMICOLON {
                 printf("Inserindo id %s do tipo %d\n", $2, $1);
-                    TDS_novoSimbolo($2, $1); 
+                    TDS_novoSimbolo($2, $1, 1); 
                 }
-                |tipo_especificador ID dimen_matriz SEMICOLON {
-                printf("Inserindo id %s do tipo %d\n", $2, $1);
-                    TDS_novoSimbolo($2, $1);
+                |tipo_especificador ID dimen_matriz SEMICOLON
+                {
+                    int dimen = $3;
+                    if (dimen <= 0) {
+                        yyerror("");
+                        print_error("Invalid array dimension.") ;
+                    }
+                    printf("Inserindo id %s do tipo %d\n", $2, $1);
+                        TDS_novoSimbolo($2, $1, dimen);
                 }
                 |tipo_especificador ID OB error SEMICOLON {
                     print_error("Array dimension missing.");
@@ -94,8 +103,12 @@ var_decl    :   tipo_especificador ID SEMICOLON {
                 ;
 
 // Dimensão de matriz: unica ou múltipla
-dimen_matriz    :   OB NUM_INT CB
-                    | OB NUM_INT CB dimen_matriz
+dimen_matriz    :   OB NUM_INT CB {
+                        $$ = $2;
+                    }
+                    | OB NUM_INT CB dimen_matriz {
+                        $$ = $2 * $4;
+                    }
                     ;
 
 // Tipos de dados
@@ -126,7 +139,7 @@ atributos_decl  :   var_decl
 
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl   :   tipo_especificador ID OP params CP composto_decl {
-                    TDS_novoSimbolo($2, $1);
+                    TDS_novoSimbolo($2, $1, 1);
                 }
                 | tipo_especificador ID OP error CP {
                     print_error("Function parameters invalid.");
@@ -151,11 +164,11 @@ params_lista    :   param
 // Parâmetros simples ou vetoriais
 param   :   tipo_especificador ID {
                 printf("Inserindo id %s do tipo %d\n", $2, $1);
-                TDS_novoSimbolo($2, $1);
+                TDS_novoSimbolo($2, $1, 1);
             }
             |tipo_especificador ID OB CB{
                 printf("Inserindo id %s do tipo %d\n", $2, $1);
-                TDS_novoSimbolo($2, $1);
+                TDS_novoSimbolo($2, $1, 1);
             }
             ;
 
@@ -270,7 +283,7 @@ expressao_soma  : termo { $$ = $1; }
 
 expressao_somatorio
     : SOMA termo {
-        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
+        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
         if (strcmp($1, "+") == 0) {
             sprintf(buffer, "%s = %s + %s", $<etds>-2->lexema, temp->lexema, $2->lexema); // <- $-2 é o termo anterior!
         } else {
@@ -280,7 +293,7 @@ expressao_somatorio
         $$ = temp;
     }
     | SOMA termo expressao_somatorio {
-        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
+        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
         if (strcmp($1, "+") == 0) {
             sprintf(buffer, "%s = %s + %s", $<etds>-3->lexema, temp->lexema, $2->lexema); // <- cuidado com a pilha de valores
         } else {
@@ -304,8 +317,8 @@ termo_aux   :   MULT fator
 fator   :   OP expressao CP {$$ = $2;}
             |var            
             |ativacao       
-            |NUM_FLOAT      {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT);}
-            |NUM_INT        {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);}
+            |NUM_FLOAT      {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_FLOAT, 1);}
+            |NUM_INT        {$$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);}
             ;
 
 // Chamada da função 
@@ -340,7 +353,7 @@ arg_list   :    expressao
 #define RESET   "\x1b[0m"
 
 void yyerror(const char *s) {
-    fprintf(stderr, RED "!SYNTATIC ERROR ocurred at (%d, %d):\n" RESET,
+    fprintf(stderr, RED "! ERROR ocurred at (%d, %d):\n" RESET,
                     line_number, column_number);
     syntax_error_occurred++;
 }

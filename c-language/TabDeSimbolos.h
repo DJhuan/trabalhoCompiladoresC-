@@ -39,7 +39,7 @@ const char* tipo_para_string(TipoDado tipo, EntradaTDS *ent);
 void tipoStruct(char* nome, TipoDado tipo);
 TabDeSimbolos* new_TabDeSimbolos();
 void delete_TabDeSimbolos();
-EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo);
+EntradaTDS* TDS_novoSimbolo(const char* lexema, TipoDado tipo, int multiplicador);
 EntradaTDS* TDS_encontrarSimbolo(const char* lexema);
 void TDS_imprimir(const TabDeSimbolos* tds,const char* tipoTab);
 // Pilha de escopos
