@@ -271,7 +271,7 @@ expressao_soma  : termo { $$ = $1; }
 expressao_somatorio
     : SOMA termo {
         EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
-        if (strcmp($1, "+")) {
+        if (strcmp($1, "+") == 0) {
             sprintf(buffer, "%s = %s + %s", $<etds>-2->lexema, temp->lexema, $2->lexema); // <- $-2 é o termo anterior!
         } else {
             sprintf(buffer, "%s = %s - %s", $<etds>-2->lexema, temp->lexema, $2->lexema);
@@ -281,7 +281,7 @@ expressao_somatorio
     }
     | SOMA termo expressao_somatorio {
         EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT);
-        if (strcmp($1, "+")) {
+        if (strcmp($1, "+") == 0) {
             sprintf(buffer, "%s = %s + %s", $<etds>-3->lexema, temp->lexema, $2->lexema); // <- cuidado com a pilha de valores
         } else {
             sprintf(buffer, "%s = %s - %s", $<etds>-3->lexema, temp->lexema, $2->lexema);
