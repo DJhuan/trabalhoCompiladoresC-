@@ -49,7 +49,7 @@
 
 %token <strval> MULT
 %token EQ
-%token RELOP
+%token <strval> RELOP
 %token SEMICOLON COMMA
 %token OCB CCB OP CP OB CB
 %token NUM_FLOAT
@@ -298,9 +298,16 @@ var_aux                 :   OB expressao CB
                             ;
 
 // Expressão simples: aritmética ou relacional
-expressao_simples       :   expressao_soma RELOP expressao_soma 
-                            |expressao_soma                     {$$ = $1;}
-                            ;
+expressao_simples       :   expressao_soma RELOP expressao_soma {
+        // Cria um temporário para o resultado da comparação
+        EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
+        // $2 é o operador relacional (ex: "<", ">", "==", etc)
+        sprintf(buffer, "%s = %s %s %s", temp->lexema, $1->lexema, $2, $3->lexema);
+        c3e_gen(buffer);
+        $$ = temp;
+    }
+    | expressao_soma { $$ = $1; }
+    ;
 
 expressao_soma          :   expressao_soma SOMA termo {
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);

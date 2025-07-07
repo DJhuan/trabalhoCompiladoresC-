@@ -42,12 +42,12 @@ other                   .
 "/"         { column_number += yyleng; yylval.strval = strdup(yytext); return MULT; }
 
 "="         { column_number += yyleng; return EQ; }
-"=="        { column_number += yyleng; return RELOP; }
-"!="        { column_number += yyleng; return RELOP; }
-"<"         { column_number += yyleng; return RELOP; }
-"<="        { column_number += yyleng; return RELOP; }
-">"         { column_number += yyleng; return RELOP; }
-">="        { column_number += yyleng; return RELOP; }
+"=="        { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
+"!="        { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
+"<"         { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
+"<="        { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
+">"         { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
+">="        { column_number += yyleng; yylval.strval = strdup(yytext); return RELOP; }
 
 ";"         { column_number += yyleng; return SEMICOLON; }
 ","         { column_number += yyleng; return COMMA; }
