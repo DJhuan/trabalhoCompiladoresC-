@@ -1,7 +1,9 @@
-int i;
 
 int fnc(void) {
-    i = 9;
-
-    i = 9 + 9;
+    int i;
+    i = 0;
+    
+    while(i) {
+        i = i - 1;
+    }
 }

@@ -23,6 +23,13 @@
     int syntax_error_occurred = 0; // Contador de erro sintático;
     void yyerror(const char *s); // Definição da função de erro (somente para o Bison não reclamar);
     void print_error(const char *msg); // Nossa função de erro;
+
+    int label_count = 0;
+    char* new_label() {
+        char* l = malloc(20);
+        sprintf(l, "L%d", label_count++);
+        return l;
+    }
 %}
 
 %union {
@@ -226,7 +233,25 @@ expressao_decl          :   expressao SEMICOLON
                             ;
 
 // Estrutura WHILE
-iteracao_decl           :   WHILE OP expressao CP comando_casado
+iteracao_decl           :   WHILE OP expressao CP comando_casado {
+                                char* lbl_inicio = new_label();
+                                char* lbl_fim = new_label();
+                                // Marca o início do laço
+                                sprintf(buffer, "%s:", lbl_inicio);
+                                c3e_gen(buffer);
+                                // Gera o teste condicional: se falso, vai para o fim
+                                sprintf(buffer, "ifFalse %s goto %s", $3->lexema, lbl_fim);
+                                c3e_gen(buffer);
+                                // Corpo do laço já foi gerado por comando_casado
+                                // Ao final, volta para o início
+                                sprintf(buffer, "goto %s", lbl_inicio);
+                                c3e_gen(buffer);
+                                // Marca o fim do laço
+                                sprintf(buffer, "%s:", lbl_fim);
+                                c3e_gen(buffer);
+                                free(lbl_inicio);
+                                free(lbl_fim);
+                            }
                             ;
 
 // Retorno de função: simples ou com valor
