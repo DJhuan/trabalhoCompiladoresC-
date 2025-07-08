@@ -1,0 +1,51 @@
+// Teste de modo pânico com erros semânticos
+
+xyz i;  // Erro: tipo inválido
+
+// Erro 2: Falta ponto e vírgula na declaração
+int j  // Erro: falta ;
+
+// Erro 3: Função com tipo de retorno inválido
+abc funcao1(void) {
+    return 10;
+}
+
+// Erro 4: Nome de função inválido
+int 123funcao(void) {
+    return 0;
+}
+
+// Erro 5: Atribuição com variável inválida
+int main(void) {
+    123abc = 5;  // Erro: variável inválida
+    
+    // Erro 6: Expressão inválida na atribuição
+    int x;
+    x = 123abc;  // Erro: expressão inválida
+    
+    // Erro 7: Índice de array inválido
+    int arr[10];
+    arr[123abc] = 5;  // Erro: índice inválido
+    
+    // Erro 8: Falta colchete direito
+    arr[5 = 10;  // Erro: falta ]
+    
+    // Erro 9: Chamada de função com nome inválido
+    123func();  // Erro: nome de função inválido
+    
+    // Erro 10: Falta parêntese direito na chamada
+    printf("hello" ;  // Erro: falta )
+    
+    // Erro 11: If com parêntese faltando
+    if x > 0) {  // Erro: falta (
+        x = 1;
+    }
+    
+    // Erro 12: While com parêntese faltando
+    while (x > 0 {  // Erro: falta )
+        x = x - 1;
+    }
+    
+    // Erro 13: Return sem ponto e vírgula
+    return 0  // Erro: falta ;
+}

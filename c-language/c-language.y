@@ -20,7 +20,7 @@
     EntradaTDS* acumulador = NULL;
 
     // Informações usadas na análise sintática:
-    int syntax_error_occurred = 0; // Contador de erro sintático;
+    int error_occurred = 0; // Contador de erro;
     void yyerror(const char *s); // Definição da função de erro (somente para o Bison não reclamar);
     void print_error(const char *msg); // Nossa função de erro;
 %}
@@ -28,7 +28,7 @@
 %union {
     char *identifier;       // para armazenar lexemas (ID)
     TipoDado tipo;   // para tipos
-    struct TabDeSimbolos* tds; // Novo campo!
+    struct TabDeSimbolos* tds; 
     struct EntradaTDS* etds;
     char* strval;
     long int constINT;
@@ -80,7 +80,6 @@ decl                    :   var_decl
 // Declaração de variável: variável simples ou matriz
 // trata o erro de identificador ausente
 var_decl                :   tipo_especificador ID SEMICOLON {
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1); 
                             }
                             |tipo_especificador ID dimen_matriz SEMICOLON {
@@ -89,18 +88,18 @@ var_decl                :   tipo_especificador ID SEMICOLON {
                                     yyerror("");
                                     print_error("Invalid array dimension.") ;
                                 }
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, dimen);
                                 sprintf(buffer, "%s = malloc %d\n", $2, dimen);
                                 c3e_gen(buffer);
                             }
-                            |tipo_especificador ID OB error SEMICOLON {
-                                print_error("Array dimension missing.");
-                                yyerrok;
-                            }
                             |tipo_especificador error SEMICOLON {
                                 print_error("Variable declaration invalid. An identifier is required.");
                                 yyerrok; // Reseta o estado de erro do parser
+                            }
+                            // analisar
+                            |error ID SEMICOLON {
+                                print_error("Erro semântico: tipo de dados inválido ou não declarado.");
+                                yyerrok; // Modo pânico - tipo inválido
                             }
                             ;
 
@@ -134,8 +133,16 @@ atributos_decl          :   var_decl
 
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl               :   tipo_especificador ID OP {
-                                // Insere o nome da função no escopo global
-                                TDS_novoSimbolo($2, $1, 1);
+                                // Verifica se função já foi declarada
+                                EntradaTDS* func_existente = TDS_encontrarSimbolo($2);
+                                if (func_existente != NULL) {
+                                    print_error("Erro Semântico: Função já declarada.");
+                                    error_occurred++;
+                                } 
+                                else {
+                                    // Insere o nome da função no escopo global
+                                    TDS_novoSimbolo($2, $1, 1);
+                                }
                             } params CP composto_decl
                             |tipo_especificador ID OP error CP {
                                 print_error("Function parameters invalid.");
@@ -159,11 +166,9 @@ params_lista            :   param
 
 // Parâmetros simples ou vetoriais
 param                   :   tipo_especificador ID {
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1);
                             }
                             |tipo_especificador ID OB CB{
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1);
                             }
                             ;
@@ -179,7 +184,19 @@ composto_decl           :   OCB {
                                 TDS_desempilhar();
                             }
                             ;
+/*
+// Corpo do while: declarações locais e comandos
+composto_while          :   OCB {
 
+                                TabDeSimbolos *nova = new_TabDeSimbolos();
+                                TDS_empilhar(nova);
+                            } local_decl comando_lista CCB {
+                                // Imprime e remove o escopo do while após processar
+                                TDS_imprimir(TDS_topo(), "While");
+                                TDS_desempilhar();
+                            }
+                            ;
+*/
 // Declarações locais
 local_decl              :   var_decl local_decl
                             | /* vazio */
@@ -198,7 +215,7 @@ comando                 :   comando_casado
 // Neste caso, TODO IF está associado com um ELSE;
 comando_casado          :   expressao_decl
                             |composto_decl
-                            |iteracao_decl
+                            |iteracao_decl 
                             |retorno_decl
                             |cabecalho_if comando_casado ELSE comando_casado
                             ;
@@ -209,7 +226,13 @@ comando_singular        :   cabecalho_if comando
                             ;
 
 // Cabeçalho para IF (separá-lo evita conflitos shift/reduce)
-cabecalho_if            :   IF OP expressao CP 
+cabecalho_if            :   IF OP expressao CP {
+                                // Verifica se a expressão de condição é válida
+                                if ($3 && $3->tipo == TIPO_VOID) {
+                                    print_error("Erro Semântico: Erro Condição do if não pode ser do tipo void.");
+                                    error_occurred++;
+                                }
+                            }
                             |IF OP error CP {
                                 print_error("Invalid if condition.");
                                 yyerrok;
@@ -226,12 +249,29 @@ expressao_decl          :   expressao SEMICOLON
                             ;
 
 // Estrutura WHILE
-iteracao_decl           :   WHILE OP expressao CP comando_casado
+iteracao_decl           :   WHILE OP expressao CP {
+                                // Verifica se a expressão de condição é válida
+                                if ($3 && $3->tipo == TIPO_VOID) {
+                                    print_error("Erro Semântico: Condição do while não pode ser do tipo void.");
+                                    error_occurred++;
+                                }
+                            } 
+                            comando_casado
                             ;
 
 // Retorno de função: simples ou com valor
-retorno_decl            :   RETURN SEMICOLON 
-                            |RETURN expressao SEMICOLON
+retorno_decl            :   RETURN SEMICOLON {
+                                // Verifica se estamos dentro de uma função que espera void
+                                // (Esta verificação pode ser expandida com contexto de função)
+                            }
+                            |RETURN expressao SEMICOLON {
+                                //analise
+                                // Verifica se o tipo de retorno é compatível
+                                if ($2 && $2->tipo == TIPO_VOID) {
+                                    print_error("Erro Semântico: Não é possível retornar valor void.");
+                                    error_occurred++;
+                                }
+                            }
                             |RETURN error SEMICOLON {
                                 print_error("Invalid return statement.");
                                 yyerrok; // Reseta o estado de erro do parser
@@ -240,8 +280,26 @@ retorno_decl            :   RETURN SEMICOLON
 
 // Expressão: atribuição ou expressão simples
 expressao               :   var EQ expressao {
+                                // Verifica compatibilidade de tipos na atribuição
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_VOID) {
+                                        print_error("Não é possível atribuir valor a variável do tipo void.");
+                                        error_occurred++;
+                                    } 
+                                    else if ($1->tipo == TIPO_STRUCT_DEF && $3->tipo != TIPO_STRUCT_DEF) {
+                                        print_error("Erro Semântico: Incompatibilidade de tipos na atribuição.");
+                                        error_occurred++;
+                                    } 
+                                    else if ($1->tipo != TIPO_STRUCT_DEF && $3->tipo == TIPO_STRUCT_DEF) {
+                                        print_error("Incompatibilidade de tipos na atribuição.");
+                                        error_occurred++;
+                                    }
+                                }
                                 $$ = $1;
-                                sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); c3e_gen(buffer);
+                                if ($1 && $3) {
+                                    sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); 
+                                    c3e_gen(buffer);
+                                }
                             }
                             |expressao_simples {$$ = $1;}
                             ;
@@ -250,7 +308,8 @@ expressao               :   var EQ expressao {
 var                     :   ID {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
                                 if (entrada == NULL) { 
-                                    print_error("Variável usada mas não declarada.");
+                                    print_error("Erro Semântico: Variável usada mas não declarada.");
+                                    error_occurred++;
                                 }
                                 $$ = entrada;
                             }
@@ -258,46 +317,78 @@ var                     :   ID {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
                                 if (entrada == NULL) {
                                     print_error("Variável usada mas não declarada.");
-                                }
+                                    error_occurred++;
+                                } 
                                 $$ = entrada;
                             }
                             ;
 
 // Acesso aos elementos do vetor/matriz
-var_aux                 :   OB expressao CB
+var_aux                 :   OB expressao CB{
+                                if($2 -> tipo != TIPO_INT ) {
+                                    print_error("Erro Semântico : Invalid type for array access");
+                                    error_occurred++;
+                                }
+                            }
                             |OB expressao CB var_aux
                             |error SEMICOLON {
                                 print_error("Invalid array access.");
-                                yyerrok; // Reseta o estado de erro do parser
+                                yyerrok; 
                             }
                             ;
 
 // Expressão simples: aritmética ou relacional
-expressao_simples       :   expressao_soma RELOP expressao_soma 
+expressao_simples       :   expressao_soma RELOP expressao_soma {
+                                // Verifica compatibilidade de tipos na operação relacional
+                                if ($1 && $3) {
+                                    if (($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) && 
+                                        $1->tipo != $3->tipo) {
+                                        print_error("Erro Semântico: Operação relacional inválida entre tipos incompatíveis.");
+                                        error_occurred++;
+                                    }
+                                }
+                                $$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
+                            }
                             |expressao_soma                     {$$ = $1;}
                             ;
 
 expressao_soma          :   expressao_soma SOMA termo {
-                                EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
-                                if (strcmp($2, "+") == 0) {
-                                    sprintf(buffer, "%s = %s + %s", temp->lexema, $1->lexema, $3->lexema);
-                                } else {
-                                    sprintf(buffer, "%s = %s - %s", temp->lexema, $1->lexema, $3->lexema);
+                                // Verifica compatibilidade de tipos na operação aritmética
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
+                                        print_error("Operação aritmética inválida com tipo struct.");
+                                        error_occurred++;
+                                    }
                                 }
-                                c3e_gen(buffer);
+                                EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
+                                if ($1 && $3) {
+                                    if (strcmp($2, "+") == 0) {
+                                        sprintf(buffer, "%s = %s + %s", temp->lexema, $1->lexema, $3->lexema);
+                                    } else {
+                                        sprintf(buffer, "%s = %s - %s", temp->lexema, $1->lexema, $3->lexema);
+                                    }
+                                    c3e_gen(buffer);
+                                }
                                 $$ = temp;
                             }
                             |termo                               { $$ = $1; }
                             ;
 
 termo                   :   termo MULT fator {
-                                EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
-                                if (strcmp($2, "*") == 0) {
-                                    sprintf(buffer, "%s = %s * %s", temp->lexema, $1->lexema, $3->lexema);
-                                } else {
-                                    sprintf(buffer, "%s = %s / %s", temp->lexema, $1->lexema, $3->lexema);
+                                // Verifica compatibilidade de tipos na multiplicação/divisão
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
+                                        print_error("Operação aritmética inválida com tipo struct.");
+                                        error_occurred++;
+                                    }
                                 }
-                                c3e_gen(buffer);
+                                EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
+                                    if (strcmp($2, "*") == 0) {
+                                        sprintf(buffer, "%s = %s * %s", temp->lexema, $1->lexema, $3->lexema);
+                                    } else {
+                                        sprintf(buffer, "%s = %s / %s", temp->lexema, $1->lexema, $3->lexema);
+                                    }
+                                    c3e_gen(buffer);
                                 $$ = temp;
                             }
                             |fator              {$$ = $1;}
@@ -312,12 +403,23 @@ fator                   :   OP expressao CP     {$$ = $2;}
                             ;
 
 // Chamada da função 
-ativacao                :   ID OP args CP {}
+ativacao                :   ID OP args CP {
+                                // Verifica se a função foi declarada
+                                EntradaTDS* func = TDS_encontrarSimbolo($1);
+                                if (func == NULL) {
+                                    print_error("Erro Semântico: Função chamada mas não declarada.");
+                                    error_occurred++;
+                                } else {
+                                    // Verifica se é realmente uma função (não uma variável)
+                                    // Esta verificação pode ser melhorada distinguindo funções de variáveis
+                                    $$ = TDS_novoSimbolo(new_nomeTemporaria(), func->tipo, 1);
+                                }
+                            }
                             |ID OP error CP {
                                 print_error("Function call with invalid arguments.");
                                 yyerrok;
                             }
-                            | ID error CP {
+                            |ID error CP {
                                 print_error("Missing '('.");
                                 yyerrok;
                             }
@@ -345,7 +447,7 @@ arg_list                :   expressao
 void yyerror(const char *s) {
     fprintf(stderr, RED "! ERROR ocurred at (%d, %d):\n" RESET,
                     line_number, column_number);
-    syntax_error_occurred++;
+    error_occurred++;
 }
 
 void print_error(const char *msg) {
@@ -369,7 +471,6 @@ int main(int argc, char **argv) {
 
     // Inicializa o arquivo de saída para código intermediário;
     c3e_init(argv[2]);
-
     
     yyin = arq_compilado;
     yyparse(); // Chamada para iniciar a análise sintática;
@@ -377,7 +478,7 @@ int main(int argc, char **argv) {
     
     TDS_imprimir(global, "Global");
     // Verifica se houve erros léxicos OU sintáticos
-    if (errors_count > 0 || syntax_error_occurred) {
+    if (errors_count > 0 || error_occurred) {
         printf(RED "*--------------------------------------------------*\n");
         printf("| !!!            Compilation failed            !!! |\n");
         printf(RED "*--------------------------------------------------*\n" RESET);
