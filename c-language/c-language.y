@@ -87,7 +87,6 @@ decl                    :   var_decl
 // Declaração de variável: variável simples ou matriz
 // trata o erro de identificador ausente
 var_decl                :   tipo_especificador ID SEMICOLON {
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1); 
                             }
                             |tipo_especificador ID dimen_matriz SEMICOLON {
@@ -96,7 +95,6 @@ var_decl                :   tipo_especificador ID SEMICOLON {
                                     yyerror("");
                                     print_error("Invalid array dimension.") ;
                                 }
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, dimen);
                                 sprintf(buffer, "%s = malloc %d\n", $2, dimen);
                                 c3e_gen(buffer);
@@ -141,8 +139,16 @@ atributos_decl          :   var_decl
 
 // Declaração de função: tipo, id, parâmetros e corpo
 func_decl               :   tipo_especificador ID OP {
-                                // Insere o nome da função no escopo global
-                                TDS_novoSimbolo($2, $1, 1);
+                                // Verifica se função já foi declarada
+                                EntradaTDS* func_existente = TDS_encontrarSimbolo($2);
+                                if (func_existente != NULL) {
+                                    yyerror("");
+                                    print_error("Semantic error: function already declared.");
+                                } 
+                                else {
+                                    // Insere o nome da função no escopo global
+                                    TDS_novoSimbolo($2, $1, 1);
+                                }
                             } params CP composto_decl
                             |tipo_especificador ID OP error CP {
                                 print_error("Function parameters invalid.");
@@ -166,11 +172,9 @@ params_lista            :   param
 
 // Parâmetros simples ou vetoriais
 param                   :   tipo_especificador ID {
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1);
                             }
                             |tipo_especificador ID OB CB{
-                                printf("Inserindo id %s do tipo %d\n", $2, $1);
                                 TDS_novoSimbolo($2, $1, 1);
                             }
                             ;
@@ -216,7 +220,13 @@ comando_singular        :   cabecalho_if comando
                             ;
 
 // Cabeçalho para IF (separá-lo evita conflitos shift/reduce)
-cabecalho_if            :   IF OP expressao CP 
+cabecalho_if            :   IF OP expressao CP {
+                                // Verifica se a expressão de condição é válida
+                                if ($3 && $3->tipo == TIPO_VOID) {
+                                    yyerror("");
+                                    print_error("Semantic error: if condition cannot be void.");
+                                }
+                            }
                             |IF OP error CP {
                                 print_error("Invalid if condition.");
                                 yyerrok;
@@ -250,6 +260,12 @@ iteracao_decl           :   WHILE OP expressao CP {
                                 acumulador = malloc(sizeof(struct { char* inicio; char* fim; }));
                                 ((char**)acumulador)[0] = lbl_inicio;
                                 ((char**)acumulador)[1] = lbl_fim;
+
+                                // Verifica se a expressão de condição é válida
+                                if ($3 && $3->tipo == TIPO_VOID) {
+                                    yyerror("");
+                                    print_error("Semantic error: while condition cannot be void.");
+                                }
                             } comando_casado {
                                 char* lbl_inicio = ((char**)acumulador)[0];
                                 char* lbl_fim = ((char**)acumulador)[1];
@@ -268,7 +284,14 @@ iteracao_decl           :   WHILE OP expressao CP {
 
 // Retorno de função: simples ou com valor
 retorno_decl            :   RETURN SEMICOLON 
-                            |RETURN expressao SEMICOLON
+                            |RETURN expressao SEMICOLON {
+                                //analise
+                                // Verifica se o tipo de retorno é compatível
+                                if ($2 && $2->tipo == TIPO_VOID) {
+                                    yyerror("");
+                                    print_error("Semantic error: cannot return void in a voidless function.");
+                                }
+                            }
                             |RETURN error SEMICOLON {
                                 print_error("Invalid return statement.");
                                 yyerrok; // Reseta o estado de erro do parser
@@ -277,8 +300,22 @@ retorno_decl            :   RETURN SEMICOLON
 
 // Expressão: atribuição ou expressão simples
 expressao               :   var EQ expressao {
+                                // Verifica compatibilidade de tipos na atribuição
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_STRUCT_DEF && $3->tipo != TIPO_STRUCT_DEF) {
+                                        yyerror("");
+                                        print_error("Semantic error: incompatible types in assignment.");
+                                    } 
+                                    else if ($1->tipo != TIPO_STRUCT_DEF && $3->tipo == TIPO_STRUCT_DEF) {
+                                        yyerror("");
+                                        print_error("Semantic error: incompatible types in assignment.");
+                                    }
+                                }
                                 $$ = $1;
-                                sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); c3e_gen(buffer);
+                                if ($1 && $3) {
+                                    sprintf(buffer, "%s = %s", $1->lexema, $3->lexema); 
+                                    c3e_gen(buffer);
+                                }
                             }
                             |expressao_simples {$$ = $1;}
                             ;
@@ -286,22 +323,29 @@ expressao               :   var EQ expressao {
 // Variável
 var                     :   ID {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
-                                if (entrada == NULL) { 
-                                    print_error("Variável usada mas não declarada.");
+                                if (entrada == NULL) {
+                                    yyerror("");
+                                    print_error("Semantic error: variable used but not declared.");
                                 }
                                 $$ = entrada;
                             }
                             |ID var_aux {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
                                 if (entrada == NULL) {
-                                    print_error("Variável usada mas não declarada.");
-                                }
+                                    yyerror("");
+                                    print_error("Semantic error: variable used but not declared.");
+                                } 
                                 $$ = entrada;
                             }
                             ;
 
 // Acesso aos elementos do vetor/matriz
-var_aux                 :   OB expressao CB
+var_aux                 :   OB expressao CB {
+                                if($2 -> tipo != TIPO_INT ) {
+                                    yyerror("");
+                                    print_error("Semantic error: invalid type for array access;");
+                                }
+                            }
                             |OB expressao CB var_aux
                             |error SEMICOLON {
                                 print_error("Invalid array access.");
@@ -311,6 +355,14 @@ var_aux                 :   OB expressao CB
 
 // Expressão simples: aritmética ou relacional
 expressao_simples       :   expressao_soma RELOP expressao_soma {
+        // Verifica compatibilidade de tipos na operação relacional
+        if ($1 && $3) {
+            if (($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) && 
+                $1->tipo != $3->tipo) {
+                yyerror("");
+                print_error("Semantic error: incompatible types in relational operation.");
+            }
+        }
         // Cria um temporário para o resultado da comparação
         EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
         // $2 é o operador relacional (ex: "<", ">", "==", etc)
@@ -322,6 +374,13 @@ expressao_simples       :   expressao_soma RELOP expressao_soma {
     ;
 
 expressao_soma          :   expressao_soma SOMA termo {
+                                // Verifica compatibilidade de tipos na operação aritmética
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
+                                        yyerror("");
+                                        print_error("Cannot sum or subtract structs.");
+                                    }
+                                }
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
                                 if (strcmp($2, "+") == 0) {
                                     sprintf(buffer, "%s = %s + %s", temp->lexema, $1->lexema, $3->lexema);
@@ -335,6 +394,13 @@ expressao_soma          :   expressao_soma SOMA termo {
                             ;
 
 termo                   :   termo MULT fator {
+                                // Verifica compatibilidade de tipos na multiplicação/divisão
+                                if ($1 && $3) {
+                                    if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
+                                        yyerror("");
+                                        print_error("Semantic error: cannot multiply or divide structs.");
+                                    }
+                                }
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
                                 if (strcmp($2, "*") == 0) {
                                     sprintf(buffer, "%s = %s * %s", temp->lexema, $1->lexema, $3->lexema);
@@ -356,7 +422,16 @@ fator                   :   OP expressao CP     {$$ = $2;}
                             ;
 
 // Chamada da função 
-ativacao                :   ID OP args CP {}
+ativacao                :   ID OP args CP {
+                                // Verifica se a função foi declarada
+                                EntradaTDS* func = TDS_encontrarSimbolo($1);
+                                if (func == NULL) {
+                                    yyerror("");
+                                    print_error("Semantic error: function not declared.");
+                                } else {
+                                    $$ = TDS_novoSimbolo(new_nomeTemporaria(), func->tipo, 1);
+                                }
+                            }
                             |ID OP error CP {
                                 print_error("Function call with invalid arguments.");
                                 yyerrok;

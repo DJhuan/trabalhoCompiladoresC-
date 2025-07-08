@@ -1,0 +1,104 @@
+/*
+    Tipo de dado Inválido;
+*/
+
+Potato c;
+
+/*
+    Redeclaração de função;
+*/
+
+int main(void){}
+int main(void){}
+
+/*
+    Função não declarada;
+    If com condição void;
+    While com condição void;
+*/
+
+int f1(void){
+    if (f2()){
+        int a;
+    }
+    while (2){
+        int b;
+    }
+}
+
+/*
+    Retornando void de função não void;
+*/
+
+int f2(void){
+    return void;
+}
+
+float f3(void){
+    return void;
+}
+
+/*
+    Atribuições inválidas;
+*/
+
+void function(void){
+    struct Ponto{
+        float x;
+        float y;
+    } p;
+
+    int x;
+
+    x = p;
+    p = x;
+}
+
+/*
+    Variáveis usadas, porém não declaradas;
+*/
+
+void funzione(void){
+    a = b;
+    b = a;
+}
+
+/*
+    Array acessado com tipo inválido;
+*/
+
+void funktsiya(void){
+    float b;
+    int a[4];
+
+    a[b];
+}
+
+/*
+    Relacional com struct;
+    Soma / Subtração com struct;
+    Multiplicação / Divisão com struct;
+*/
+
+void funktion(void){
+    struct Ponto{
+        float x;
+        float y;
+    } p;
+
+    int a;
+
+    a = a + p;
+    a = p - a + a;
+    a = a / p;
+    a = a * p;
+}
+
+/*
+    Função não declarada;
+    Identificador não é uma função;
+*/
+
+void funcao(void){
+    xn();
+}

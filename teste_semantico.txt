@@ -1,0 +1,39 @@
+int x;
+float y;
+
+int soma(int a, int b) {
+    int resultado;
+    resultado = a + b;
+    return resultado;
+}
+
+void processa(void) {
+    int i;
+    float valores[10];
+    float flag;  /* substitui "letra" */
+
+    i = 0;
+    while (i < 10) {
+        valores[i] = i * 1.5;
+        i = i + 1;
+    }
+
+    if (valores[0] > 0.0) {
+        flag = 1.0;
+    } else {
+        flag = 0.0;
+    }
+
+    return;
+}
+
+int main(void) {
+    int resultado;
+    x = 5;
+    y = 2.5;
+
+    resultado = soma(x, 10);
+    processa();
+
+    return 0;
+}
