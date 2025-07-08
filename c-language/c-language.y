@@ -98,7 +98,7 @@ var_decl                :   tipo_especificador ID SEMICOLON {
                             }
                             // analisar
                             |error ID SEMICOLON {
-                                print_error("Erro semântico: tipo de dados inválido ou não declarado.");
+                                print_error("Semantic error: invalid type for variable.");
                                 yyerrok; // Modo pânico - tipo inválido
                             }
                             ;
@@ -136,8 +136,8 @@ func_decl               :   tipo_especificador ID OP {
                                 // Verifica se função já foi declarada
                                 EntradaTDS* func_existente = TDS_encontrarSimbolo($2);
                                 if (func_existente != NULL) {
-                                    print_error("Erro Semântico: Função já declarada.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: function already declared.");
                                 } 
                                 else {
                                     // Insere o nome da função no escopo global
@@ -229,8 +229,8 @@ comando_singular        :   cabecalho_if comando
 cabecalho_if            :   IF OP expressao CP {
                                 // Verifica se a expressão de condição é válida
                                 if ($3 && $3->tipo == TIPO_VOID) {
-                                    print_error("Erro Semântico: Erro Condição do if não pode ser do tipo void.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: if condition cannot be void.");
                                 }
                             }
                             |IF OP error CP {
@@ -252,8 +252,8 @@ expressao_decl          :   expressao SEMICOLON
 iteracao_decl           :   WHILE OP expressao CP {
                                 // Verifica se a expressão de condição é válida
                                 if ($3 && $3->tipo == TIPO_VOID) {
-                                    print_error("Erro Semântico: Condição do while não pode ser do tipo void.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: while condition cannot be void.");
                                 }
                             } 
                             comando_casado
@@ -268,8 +268,8 @@ retorno_decl            :   RETURN SEMICOLON {
                                 //analise
                                 // Verifica se o tipo de retorno é compatível
                                 if ($2 && $2->tipo == TIPO_VOID) {
-                                    print_error("Erro Semântico: Não é possível retornar valor void.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: cannot return void in a voidless function.");
                                 }
                             }
                             |RETURN error SEMICOLON {
@@ -282,17 +282,13 @@ retorno_decl            :   RETURN SEMICOLON {
 expressao               :   var EQ expressao {
                                 // Verifica compatibilidade de tipos na atribuição
                                 if ($1 && $3) {
-                                    if ($1->tipo == TIPO_VOID) {
-                                        print_error("Não é possível atribuir valor a variável do tipo void.");
-                                        error_occurred++;
-                                    } 
-                                    else if ($1->tipo == TIPO_STRUCT_DEF && $3->tipo != TIPO_STRUCT_DEF) {
-                                        print_error("Erro Semântico: Incompatibilidade de tipos na atribuição.");
-                                        error_occurred++;
+                                    if ($1->tipo == TIPO_STRUCT_DEF && $3->tipo != TIPO_STRUCT_DEF) {
+                                        yyerror("");
+                                        print_error("Semantic error: incompatible types in assignment.");
                                     } 
                                     else if ($1->tipo != TIPO_STRUCT_DEF && $3->tipo == TIPO_STRUCT_DEF) {
-                                        print_error("Incompatibilidade de tipos na atribuição.");
-                                        error_occurred++;
+                                        yyerror("");
+                                        print_error("Semantic error: incompatible types in assignment.");
                                     }
                                 }
                                 $$ = $1;
@@ -307,17 +303,17 @@ expressao               :   var EQ expressao {
 // Variável
 var                     :   ID {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
-                                if (entrada == NULL) { 
-                                    print_error("Erro Semântico: Variável usada mas não declarada.");
-                                    error_occurred++;
+                                if (entrada == NULL) {
+                                    yyerror("");
+                                    print_error("Semantic error: variable used but not declared.");
                                 }
                                 $$ = entrada;
                             }
                             |ID var_aux {
                                 EntradaTDS* entrada = TDS_encontrarSimbolo($1);
                                 if (entrada == NULL) {
-                                    print_error("Variável usada mas não declarada.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: variable used but not declared.");
                                 } 
                                 $$ = entrada;
                             }
@@ -326,8 +322,8 @@ var                     :   ID {
 // Acesso aos elementos do vetor/matriz
 var_aux                 :   OB expressao CB{
                                 if($2 -> tipo != TIPO_INT ) {
-                                    print_error("Erro Semântico : Invalid type for array access");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: invalid type for array access;");
                                 }
                             }
                             |OB expressao CB var_aux
@@ -343,8 +339,8 @@ expressao_simples       :   expressao_soma RELOP expressao_soma {
                                 if ($1 && $3) {
                                     if (($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) && 
                                         $1->tipo != $3->tipo) {
-                                        print_error("Erro Semântico: Operação relacional inválida entre tipos incompatíveis.");
-                                        error_occurred++;
+                                        yyerror("");
+                                        print_error("Semantic error: incompatible types in relational operation.");
                                     }
                                 }
                                 $$ = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
@@ -356,8 +352,8 @@ expressao_soma          :   expressao_soma SOMA termo {
                                 // Verifica compatibilidade de tipos na operação aritmética
                                 if ($1 && $3) {
                                     if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
-                                        print_error("Operação aritmética inválida com tipo struct.");
-                                        error_occurred++;
+                                        yyerror("");
+                                        print_error("Cannot sum or subtract structs.");
                                     }
                                 }
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
@@ -378,8 +374,8 @@ termo                   :   termo MULT fator {
                                 // Verifica compatibilidade de tipos na multiplicação/divisão
                                 if ($1 && $3) {
                                     if ($1->tipo == TIPO_STRUCT_DEF || $3->tipo == TIPO_STRUCT_DEF) {
-                                        print_error("Operação aritmética inválida com tipo struct.");
-                                        error_occurred++;
+                                        yyerror("");
+                                        print_error("Semantic error: cannot multiply or divide structs.");
                                     }
                                 }
                                 EntradaTDS* temp = TDS_novoSimbolo(new_nomeTemporaria(), TIPO_INT, 1);
@@ -407,11 +403,9 @@ ativacao                :   ID OP args CP {
                                 // Verifica se a função foi declarada
                                 EntradaTDS* func = TDS_encontrarSimbolo($1);
                                 if (func == NULL) {
-                                    print_error("Erro Semântico: Função chamada mas não declarada.");
-                                    error_occurred++;
+                                    yyerror("");
+                                    print_error("Semantic error: function not declared.");
                                 } else {
-                                    // Verifica se é realmente uma função (não uma variável)
-                                    // Esta verificação pode ser melhorada distinguindo funções de variáveis
                                     $$ = TDS_novoSimbolo(new_nomeTemporaria(), func->tipo, 1);
                                 }
                             }
